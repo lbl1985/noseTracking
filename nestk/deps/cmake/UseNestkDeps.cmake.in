@@ -1,0 +1,135 @@
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${nestk_deps_SOURCE_DIR}/cmake)
+
+INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES( BEFORE ${nestk_deps_SOURCE_DIR} ${nestk_deps_BINARY_DIR} )
+
+## Eigen stuff.
+INCLUDE_DIRECTORIES( ${nestk_deps_SOURCE_DIR}/eigen)
+
+## OpenCV
+IF (NESTK_USE_EXTERNAL_OPENCV)
+  FIND_PACKAGE(OpenCV REQUIRED)
+ELSE()
+  SET(OpenCV_DIR ${CMAKE_BINARY_DIR})
+  FIND_PACKAGE(OpenCV REQUIRED)
+  INCLUDE_DIRECTORIES(${OPENCV_INCLUDE_DIRS})
+ENDIF(NESTK_USE_EXTERNAL_OPENCV)
+
+## Qt stuff.
+SET(QT_USE_QTXML 1)
+SET(QT_USE_QTSVG 1)
+SET(QT_USE_QTOPENGL 1)
+SET(QT_USE_QTNETWORK 1)
+FIND_PACKAGE(Qt4)
+ADD_DEFINITIONS(-DNESTK_USE_QT)
+INCLUDE(${QT_USE_FILE})
+IF (NOT QT4_FOUND)
+  MESSAGE(FATAL_ERROR "Qt4 was not found. Check the QTDIR environment variable.")
+ENDIF(NOT QT4_FOUND)
+
+# For libfreenect
+IF (NESTK_USE_FREENECT)
+    if (WIN32)
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows")
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows/libusb10emu")
+    endif()
+    include_directories(${nestk_deps_SOURCE_DIR}/libfreenect/include)
+    ADD_DEFINITIONS(-DNESTK_USE_FREENECT)
+    ## LIBUSB
+    if(WIN32)
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows")
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows/libusb10emu")
+     endif()
+    INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIR})
+    SET(FREENECT_LIBRARY freenect)
+ENDIF(NESTK_USE_FREENECT)
+
+# For OpenNI
+IF (NESTK_USE_OPENNI)
+    SET(NITE_LIBRARY XnVNite)
+    SET(OPENNI_LIBRARY OpenNI ${NITE_LIBRARY})
+    ADD_DEFINITIONS(-DNESTK_USE_OPENNI)
+
+    IF(WIN32)
+        SET(OPENNI_INCLUDE_DIR "c:/Program Files/OpenNI/Include" CACHE PATH "OpenNI Include directory")
+        SET(OPENNI_LIBRARY_DIR "c:/Program Files/OpenNI/Lib" CACHE PATH "OpenNI Library directory")
+        SET(NITE_INCLUDE_DIR "C:/Program Files/Prime Sense/NITE/Include" CACHE PATH "Nite Include directory")
+        SET(NITE_LIBRARY_DIR "C:/Program Files/Prime Sense/NITE/Lib" CACHE PATH "Nite Library directory")
+    ELSEIF (NESTK_USE_EXTERNAL_OPENNI)
+        SET(OPENNI_INCLUDE_DIR "/usr/include/ni" CACHE PATH "OpenNI include dir")
+        SET(OPENNI_LIBRARY_DIR "/usr/lib" CACHE PATH "OpenNI library dir")
+        SET(NITE_INCLUDE_DIR "/usr/include/nite" CACHE PATH "Nite include dir")
+        SET(NITE_LIBRARY_DIR "/usr/lib" CACHE PATH "Nite library dir")
+    ELSE()
+        SET(OPENNI_INCLUDE_DIR "${nestk_deps_SOURCE_DIR}/openni/Include/")
+        SET(NITE_INCLUDE_DIR "${nestk_deps_SOURCE_DIR}/openni/Nite/Include/")
+        INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIR})
+        IF(APPLE)
+          SET(NITE_LIBRARY_DIR ${LIBRARY_OUTPUT_PATH} ${EXECUTABLE_OUTPUT_PATH})
+        ELSEIF(UNIX)
+          IF (ARCHITECTURE_IS_X86_64)
+            SET(NITE_LIBRARY_DIR "${nestk_deps_SOURCE_DIR}/openni/Nite/Lib/Linux64")
+          ELSE()
+            SET(NITE_LIBRARY_DIR "${nestk_deps_SOURCE_DIR}/openni/Nite/Lib/Linux32")
+          ENDIF()
+        ENDIF()
+    ENDIF()
+    INCLUDE_DIRECTORIES(${OPENNI_INCLUDE_DIR} ${NITE_INCLUDE_DIR})
+    LINK_DIRECTORIES(${OPENNI_LIBRARY_DIR} ${NITE_LIBRARY_DIR})
+ENDIF(NESTK_USE_OPENNI)
+
+# opengl
+FIND_PACKAGE(OpenGL REQUIRED)
+
+# GLUT
+FIND_PACKAGE(GLUT REQUIRED)
+INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR})
+
+# X11
+FIND_LIBRARY(X11_LIBRARY X11)
+IF (NOT X11_LIBRARY)
+  SET(X11_LIBRARY "")
+ENDIF()
+
+# GLEW library
+set(GLEW_INCLUDE_DIR "${nestk_deps_SOURCE_DIR}/glew/include" CACHE FILEPATH "" FORCE)
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
+set(GLEW_LIBRARIES "glew" CACHE FILEPATH "" FORCE)
+ADD_DEFINITIONS(-DNESTK_USE_GLEW)
+
+# GSL stuff
+OPTION(NESTK_USE_GSL "Try to build GSL support" 0)
+IF (NESTK_USE_GSL)
+  FIND_PACKAGE(GSL)
+  IF (GSL_FOUND)
+    ADD_DEFINITIONS(-DNESTK_USE_GSL)
+    SET(GSL_LIBRARIES gsl gslcblas)
+  ELSE()
+    SET(GSL_LIBRARIES "")
+  ENDIF (GSL_FOUND)
+ENDIF()
+
+# OPENCL
+OPTION(NESTK_USE_OPENCL "Try to build OpenCL support" 0)
+IF (NESTK_USE_OPENCL)
+  FIND_PACKAGE(OPENCL)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/opencl11)
+  IF (OPENCL_FOUND)
+    ADD_DEFINITIONS(-DNESTK_USE_OPENCL)
+    SET(OPENCL_LIBRARIES OpenCL)
+    SET(HAVE_OPENCL 1)
+  ENDIF()
+ENDIF()
+
+# PCL
+IF (NESTK_USE_PCL)
+  ADD_DEFINITIONS(-DNESTK_USE_PCL)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/cminpack)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/flann/src/cpp/flann)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/flann/src/cpp)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/qhull/src)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pcl/include)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pcl/src)
+  INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pcl/include/roslib)
+  SET(PCL_LIBRARIES pcl_io pcl_filters pcl_registration flann_cpp cminpack)
+ENDIF()

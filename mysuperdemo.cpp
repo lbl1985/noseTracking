@@ -1,3 +1,4 @@
+#include <string>
 #include <ntk/camera/kinect_grabber.h>
 #include <ntk/camera/nite_rgbd_grabber.h>
 #include <ntk/camera/rgbd_processor.h>
@@ -13,12 +14,16 @@
 
 using namespace ntk;
 using namespace cv;
+using namespace std;
 
 
 int main(int argc, char** argv)
 {
 	QApplication::setGraphicsSystem("raster");
 	QApplication app (argc, argv);
+
+	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
+	string filename;
 	
 	/*KinectGrabber grabber;*/
 	ntk::NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
@@ -63,14 +68,14 @@ int main(int argc, char** argv)
 
 	// Current image. An RGBDImage stores rgb and depth data.
 	ntk::RGBDImage current_frame;
-	GuiController gui_controller (*grabber, *m_processor);
-	grabber->addEventListener(&gui_controller);
+	//GuiController gui_controller (*grabber, *m_processor);
+	//grabber->addEventListener(&gui_controller);
 
 
 	if (mesh_generator)
 	{
 		mesh_generator->setUseColor(true);
-		gui_controller.setMeshGenerator(*mesh_generator);
+		//gui_controller.setMeshGenerator(*mesh_generator);
 	}
 
 	grabber->start();
@@ -95,7 +100,18 @@ int main(int argc, char** argv)
 			Point(10,20), 0, 0.5, Scalar(255,0,0,255));
 
 		// Display the color image	
-		imshow("color", current_frame.rgb());
+		//imshow("color", current_frame.rgb());
+		
+		IplImage SaveImg = current_frame.rgb();
+		IplImage* pSaveImg = &SaveImg;
+		
+		imshow("color", pSaveImg);
+		bool iswrite;
+		const int nchannel = 3;
+		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
+		if(!iswrite)
+			printf("Could not save\n");
+
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());

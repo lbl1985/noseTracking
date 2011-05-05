@@ -62,6 +62,7 @@ GuiController :: GuiController(ntk::RGBDGrabber& producer,
   m_detector_window = new DetectorWindow(*this);
 
   m_raw_images_window->show();
+  //m_view3d_window->show();
 }
 
 GuiController :: ~GuiController()

@@ -62,7 +62,6 @@ int main()
 	grabber->addEventListener(&gui_controller);*/
 	grabber->start();
 
-
 	while (true)
 	{
 
@@ -92,7 +91,7 @@ int main()
 		cv::Mat3b depth_as_color;
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
 		imshow("depth_as_color", depth_as_color);
-
+		
 		// Enable switching to InfraRead mode.
 		unsigned char c = cv::waitKey(10) & 0xff;
 		if (c == 'q')

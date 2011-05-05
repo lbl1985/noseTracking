@@ -8,21 +8,27 @@
 #include "GuiController.h"
 #include "ObjectDetector.h"
 
+#include <QApplication>
+#include <QMetaType>
+
 using namespace ntk;
 using namespace cv;
 
 
-int main()
+int main(int argc, char** argv)
 {
+	QApplication::setGraphicsSystem("raster");
+	QApplication app (argc, argv);
+	
 	/*KinectGrabber grabber;*/
 	ntk::NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+	ntk::RGBDGrabber* grabber = 0;
 	//k_grabber->setHighRgbResolution(true);
 	k_grabber->initialize();	
 
 	// Postprocess raw kinect data.
 	// Tell the processor to transform raw depth into meters using baseline-offset technique.
-
-	ntk::RGBDGrabber* grabber = 0;
+	
 	grabber = k_grabber;
 
 	// MeshGenerator Functionality Added
@@ -37,29 +43,36 @@ int main()
 		grabber->setCalibrationData(*calib_data);
 	}
 
-	if (mesh_generator)
-	{
-		mesh_generator->setUseColor(true);
-		// Doesn't have gui controller here
-	}
+	
 	
 
 	ntk::NiteProcessor processor;
 	processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
-	//processor = new ntk::NiteProcessor;
+
+	// m_processor for mesh_viewer
+	ntk::NiteProcessor* m_processor = 0;
+	m_processor = new ntk::NiteProcessor();
+
+
 
 
 	// OpenCV windows.
 	namedWindow("color");
 	namedWindow("depth");
 	namedWindow("depth_as_color");
-	namedWindow("mesh");
 
 	// Current image. An RGBDImage stores rgb and depth data.
 	ntk::RGBDImage current_frame;
+	GuiController gui_controller (*grabber, *m_processor);
+	grabber->addEventListener(&gui_controller);
 
-	/*GuiController gui_controller (*grabber, *processor);
-	grabber->addEventListener(&gui_controller);*/
+
+	if (mesh_generator)
+	{
+		mesh_generator->setUseColor(true);
+		gui_controller.setMeshGenerator(*mesh_generator);
+	}
+
 	grabber->start();
 
 	while (true)

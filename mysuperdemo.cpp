@@ -5,6 +5,8 @@
 
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
+#include "GuiController.h"
+#include "ObjectDetector.h"
 
 using namespace ntk;
 using namespace cv;

@@ -1,4 +1,11 @@
 #include <string>
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <iostream>
+#include <stdio.h>
+
 #include <ntk/camera/kinect_grabber.h>
 #include <ntk/camera/nite_rgbd_grabber.h>
 #include <ntk/camera/rgbd_processor.h>
@@ -15,6 +22,18 @@
 using namespace ntk;
 using namespace cv;
 using namespace std;
+
+// Create memory for calculations
+static CvMemStorage* storage = 0;
+
+// Create a new Haar classifier
+static CvHaarClassifierCascade* cascade = 0;
+
+// Create a string that contains the cascade name
+const char* cascade_name = "haarcascade_frontalface_alt.xml";
+
+// Function prototype for detecting and drawing an object from an image
+void detect_and_draw(IplImage* image);
 
 
 int main(int argc, char** argv)
@@ -65,6 +84,7 @@ int main(int argc, char** argv)
 	namedWindow("color");
 	namedWindow("depth");
 	namedWindow("depth_as_color");
+	namedWindow("result");
 
 	// Current image. An RGBDImage stores rgb and depth data.
 	ntk::RGBDImage current_frame;
@@ -79,7 +99,8 @@ int main(int argc, char** argv)
 	}
 
 	grabber->start();
-
+	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
+	storage = cvCreateMemStorage(0);
 	while (true)
 	{
 
@@ -111,7 +132,8 @@ int main(int argc, char** argv)
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
 		if(!iswrite)
 			printf("Could not save\n");
-
+		IplImage* frame_copy = pSaveImg;
+		detect_and_draw(frame_copy);
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());
@@ -129,4 +151,52 @@ int main(int argc, char** argv)
 
 	delete mesh_generator;
 	return 0;
+}
+
+void detect_and_draw( IplImage* img )
+{
+    int scale = 1;
+
+    // Create a new image based on the input image
+    IplImage* temp = cvCreateImage( cvSize(img->width/scale,img->height/scale), 8, 3 );
+
+    // Create two points to represent the face locations
+    CvPoint pt1, pt2;
+    int i;
+
+    // Clear the memory storage which was used before
+    cvClearMemStorage( storage );
+
+    // Find whether the cascade is loaded, to find the faces. If yes, then:
+    if( cascade )
+    {
+
+        // There can be more than one face in an image. So create a growable sequence of faces.
+        // Detect the objects and store them in the sequence
+        CvSeq* faces = cvHaarDetectObjects( img, cascade, storage,
+                                            1.1, 2, CV_HAAR_DO_CANNY_PRUNING,
+                                            cvSize(40, 40) );
+
+        // Loop the number of faces found.
+        for( i = 0; i < (faces ? faces->total : 0); i++ )
+        {
+           // Create a new rectangle for drawing the face
+            CvRect* r = (CvRect*)cvGetSeqElem( faces, i );
+
+            // Find the dimensions of the face,and scale it if necessary
+            pt1.x = r->x*scale;
+            pt2.x = (r->x+r->width)*scale;
+            pt1.y = r->y*scale;
+            pt2.y = (r->y+r->height)*scale;
+
+            // Draw the rectangle in the input image
+            cvRectangle( img, pt1, pt2, CV_RGB(255,0,0), 3, 8, 0 );
+        }
+    }
+
+    // Show the image in the window named "result"
+    cvShowImage( "result", img );
+
+    // Release the temp image created.
+    cvReleaseImage( &temp );
 }

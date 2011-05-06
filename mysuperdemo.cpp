@@ -27,19 +27,25 @@ using namespace std;
 static CvMemStorage* storage = 0;
 
 // Create a new Haar classifier
-static CvHaarClassifierCascade* cascade = 0;
+//static CvHaarClassifierCascade* cascade = 0;
+//static CvHaarClassifierCascade* nestedCascade = 0;
 
 // Create a string that contains the cascade name
-const char* cascade_name = "haarcascade_frontalface_alt.xml";
+string cascade_name = "haarcascade_frontalface_alt.xml";
+string nestedCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
 
 // Function prototype for detecting and drawing an object from an image
-void detect_and_draw(IplImage* image);
+void detectAndDraw( Mat& img,
+                   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
+                   double scale);
 
 
 int main(int argc, char** argv)
 {
 	QApplication::setGraphicsSystem("raster");
 	QApplication app (argc, argv);
+
+	CascadeClassifier cascade, nestedCascade;
 
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
 	string filename;
@@ -99,7 +105,11 @@ int main(int argc, char** argv)
 	}
 
 	grabber->start();
-	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
+
+	//cascade = (CvHaarClassifierCascade&)cvLoad(cascade_name, 0, 0, 0);
+	//nestedCascade = (CvHaarClassifierCascade&)cvLoad(nestedCascadeName, 0, 0, 0);
+	cascade.load(cascade_name);
+	nestedCascade.load(nestedCascadeName);
 	storage = cvCreateMemStorage(0);
 	while (true)
 	{
@@ -130,10 +140,12 @@ int main(int argc, char** argv)
 		bool iswrite;
 		const int nchannel = 3;
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
-		if(!iswrite)
-			printf("Could not save\n");
-		IplImage* frame_copy = pSaveImg;
-		detect_and_draw(frame_copy);
+		if(!iswrite) printf("Could not save\n");
+		//IplImage* frame_copy = pSaveImg;
+
+		cv::Mat frame_copy = current_frame.rgb();
+		cv::Mat& rframe_copy = frame_copy;
+		detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());
@@ -153,50 +165,66 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void detect_and_draw( IplImage* img )
+void detectAndDraw( Mat& img,
+                   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
+                   double scale)
 {
-    int scale = 1;
+    int i = 0;
+    double t = 0;
+    vector<Rect> faces;
+    const static Scalar colors[] =  { CV_RGB(0,0,255),
+        CV_RGB(0,128,255),
+        CV_RGB(0,255,255),
+        CV_RGB(0,255,0),
+        CV_RGB(255,128,0),
+        CV_RGB(255,255,0),
+        CV_RGB(255,0,0),
+        CV_RGB(255,0,255)} ;
+    Mat gray, smallImg( cvRound (img.rows/scale), cvRound(img.cols/scale), CV_8UC1 );
 
-    // Create a new image based on the input image
-    IplImage* temp = cvCreateImage( cvSize(img->width/scale,img->height/scale), 8, 3 );
+    cvtColor( img, gray, CV_BGR2GRAY );
+    resize( gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR );
+    equalizeHist( smallImg, smallImg );
 
-    // Create two points to represent the face locations
-    CvPoint pt1, pt2;
-    int i;
-
-    // Clear the memory storage which was used before
-    cvClearMemStorage( storage );
-
-    // Find whether the cascade is loaded, to find the faces. If yes, then:
-    if( cascade )
+    t = (double)cvGetTickCount();
+    cascade.detectMultiScale( smallImg, faces,
+        1.1, 2, 0
+        //|CV_HAAR_FIND_BIGGEST_OBJECT
+        //|CV_HAAR_DO_ROUGH_SEARCH
+        |CV_HAAR_SCALE_IMAGE
+        ,
+        Size(30, 30) );
+    t = (double)cvGetTickCount() - t;
+    printf( "detection time = %g ms\n", t/((double)cvGetTickFrequency()*1000.) );
+    for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++ )
     {
-
-        // There can be more than one face in an image. So create a growable sequence of faces.
-        // Detect the objects and store them in the sequence
-        CvSeq* faces = cvHaarDetectObjects( img, cascade, storage,
-                                            1.1, 2, CV_HAAR_DO_CANNY_PRUNING,
-                                            cvSize(40, 40) );
-
-        // Loop the number of faces found.
-        for( i = 0; i < (faces ? faces->total : 0); i++ )
+        Mat smallImgROI;
+        vector<Rect> nestedObjects;
+        Point center;
+        Scalar color = colors[i%8];
+        int radius;
+        center.x = cvRound((r->x + r->width*0.5)*scale);
+        center.y = cvRound((r->y + r->height*0.5)*scale);
+        radius = cvRound((r->width + r->height)*0.25*scale);
+        circle( img, center, radius, color, 3, 8, 0 );
+        if( nestedCascade.empty() )
+            continue;
+        smallImgROI = smallImg(*r);
+        nestedCascade.detectMultiScale( smallImgROI, nestedObjects,
+            1.1, 2, 0
+            //|CV_HAAR_FIND_BIGGEST_OBJECT
+            //|CV_HAAR_DO_ROUGH_SEARCH
+            //|CV_HAAR_DO_CANNY_PRUNING
+            |CV_HAAR_SCALE_IMAGE
+            ,
+            Size(30, 30) );
+        for( vector<Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
         {
-           // Create a new rectangle for drawing the face
-            CvRect* r = (CvRect*)cvGetSeqElem( faces, i );
-
-            // Find the dimensions of the face,and scale it if necessary
-            pt1.x = r->x*scale;
-            pt2.x = (r->x+r->width)*scale;
-            pt1.y = r->y*scale;
-            pt2.y = (r->y+r->height)*scale;
-
-            // Draw the rectangle in the input image
-            cvRectangle( img, pt1, pt2, CV_RGB(255,0,0), 3, 8, 0 );
+            center.x = cvRound((r->x + nr->x + nr->width*0.5)*scale);
+            center.y = cvRound((r->y + nr->y + nr->height*0.5)*scale);
+            radius = cvRound((nr->width + nr->height)*0.25*scale);
+            circle( img, center, radius, color, 3, 8, 0 );
         }
-    }
-
-    // Show the image in the window named "result"
-    cvShowImage( "result", img );
-
-    // Release the temp image created.
-    cvReleaseImage( &temp );
+    }  
+    cv::imshow( "result", img );    
 }

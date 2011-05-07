@@ -13,6 +13,7 @@
 
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
+#include <ntk/mesh/mesh_viewer.h>
 #include "GuiController.h"
 #include "ObjectDetector.h"
 
@@ -63,6 +64,7 @@ int main(int argc, char** argv)
 
 	// MeshGenerator Functionality Added
 	ntk::MeshGenerator* mesh_generator = 0;
+	ntk::MeshViewer* mesh_view;
 	ntk::RGBDCalibration* calib_data = 0;
 
 	calib_data = new RGBDCalibration();
@@ -94,6 +96,7 @@ int main(int argc, char** argv)
 
 	// Current image. An RGBDImage stores rgb and depth data.
 	ntk::RGBDImage current_frame;
+	ntk::RGBDImage last_frame;
 	//GuiController gui_controller (*grabber, *m_processor);
 	//grabber->addEventListener(&gui_controller);
 
@@ -154,11 +157,22 @@ int main(int argc, char** argv)
 		cv::Mat3b depth_as_color;
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
 		imshow("depth_as_color", depth_as_color);
+
 		
+
+		// Save current Frame into lastFrame;
+		grabber->copyImageTo(last_frame);
+		processor.processImage(last_frame);
 		// Enable switching to InfraRead mode.
 		unsigned char c = cv::waitKey(10) & 0xff;
 		if (c == 'q')
 			exit(0);
+		else if (c == 'm')
+		{	
+			// Mesh Showing
+			mesh_generator->generate(last_frame);
+			mesh_view->addMesh(mesh_generator->mesh(), Pose3D(), MeshViewer::FLAT);
+		}
 	}
 
 	delete mesh_generator;

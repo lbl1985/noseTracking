@@ -35,7 +35,7 @@ string cascade_name = "haarcascade_frontalface_alt.xml";
 string nestedCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
 
 // Function prototype for detecting and drawing an object from an image
-void detectAndDraw( Mat& img,
+vector<Rect> detectAndDraw( Mat& img,
                    CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
                    double scale);
 
@@ -139,13 +139,13 @@ int main(int argc, char** argv)
 		imshow("color", pSaveImg);
 		bool iswrite;
 		const int nchannel = 3;
+		vector<Rect> faces;
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
 		if(!iswrite) printf("Could not save\n");
-		//IplImage* frame_copy = pSaveImg;
 
 		cv::Mat frame_copy = current_frame.rgb();
 		cv::Mat& rframe_copy = frame_copy;
-		detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
+		faces = detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void detectAndDraw( Mat& img,
+vector<Rect> detectAndDraw( Mat& img,
                    CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
                    double scale)
 {
@@ -226,5 +226,6 @@ void detectAndDraw( Mat& img,
             circle( img, center, radius, color, 3, 8, 0 );
         }
     }  
-    cv::imshow( "result", img );    
+    cv::imshow( "result", img );   
+	return(faces);
 }

@@ -27,6 +27,8 @@ using namespace std;
 // Create memory for calculations
 static CvMemStorage* storage = 0;
 
+// Control QT or Images
+bool QT = false;
 // Create a new Haar classifier
 //static CvHaarClassifierCascade* cascade = 0;
 //static CvHaarClassifierCascade* nestedCascade = 0;
@@ -37,8 +39,8 @@ string nestedCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
 
 // Function prototype for detecting and drawing an object from an image
 vector<Rect> detectAndDraw( Mat& img,
-                   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
-                   double scale);
+						   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
+						   double scale);
 
 
 int main(int argc, char** argv)
@@ -50,7 +52,7 @@ int main(int argc, char** argv)
 
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
 	string filename;
-	
+
 	/*KinectGrabber grabber;*/
 	ntk::NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
 	ntk::RGBDGrabber* grabber = 0;
@@ -59,7 +61,7 @@ int main(int argc, char** argv)
 
 	// Postprocess raw kinect data.
 	// Tell the processor to transform raw depth into meters using baseline-offset technique.
-	
+
 	grabber = k_grabber;
 
 	// MeshGenerator Functionality Added
@@ -75,8 +77,8 @@ int main(int argc, char** argv)
 		grabber->setCalibrationData(*calib_data);
 	}
 
-	
-	
+
+
 
 	ntk::NiteProcessor processor;
 	processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
@@ -89,22 +91,29 @@ int main(int argc, char** argv)
 
 
 	// OpenCV windows.
-	namedWindow("color");
-	namedWindow("depth");
-	namedWindow("depth_as_color");
-	namedWindow("result");
+	if(!QT)
+	{
+		namedWindow("color");
+		namedWindow("depth");
+		namedWindow("depth_as_color");
+		namedWindow("result");
+	}
 
 	// Current image. An RGBDImage stores rgb and depth data.
 	ntk::RGBDImage current_frame;
 	ntk::RGBDImage last_frame;
-	//GuiController gui_controller (*grabber, *m_processor);
-	//grabber->addEventListener(&gui_controller);
+	GuiController gui_controller (*grabber, *m_processor);
+	if(QT)
+	{		
+		grabber->addEventListener(&gui_controller);
+	}
 
 
 	if (mesh_generator)
 	{
 		mesh_generator->setUseColor(true);
-		//gui_controller.setMeshGenerator(*mesh_generator);
+		if(QT)
+			gui_controller.setMeshGenerator(*mesh_generator);
 	}
 
 	grabber->start();
@@ -114,10 +123,12 @@ int main(int argc, char** argv)
 	cascade.load(cascade_name);
 	nestedCascade.load(nestedCascadeName);
 	storage = cvCreateMemStorage(0);
+
+	if (QT)
+		app.exec();
+
 	while (true)
 	{
-
-
 		/*grabber.waitForNextFrame();
 		grabber.copyImageTo(current_frame);
 		processor.processImage(current_frame);*/
@@ -135,10 +146,10 @@ int main(int argc, char** argv)
 
 		// Display the color image	
 		//imshow("color", current_frame.rgb());
-		
+
 		IplImage SaveImg = current_frame.rgb();
 		IplImage* pSaveImg = &SaveImg;
-		
+
 		imshow("color", pSaveImg);
 		bool iswrite;
 		const int nchannel = 3;
@@ -158,11 +169,12 @@ int main(int argc, char** argv)
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
 		imshow("depth_as_color", depth_as_color);
 
-		
+
 
 		// Save current Frame into lastFrame;
 		grabber->copyImageTo(last_frame);
 		processor.processImage(last_frame);
+
 		// Enable switching to InfraRead mode.
 		unsigned char c = cv::waitKey(10) & 0xff;
 		if (c == 'q')
@@ -174,72 +186,71 @@ int main(int argc, char** argv)
 			mesh_view->addMesh(mesh_generator->mesh(), Pose3D(), MeshViewer::FLAT);
 		}
 	}
-
 	delete mesh_generator;
 	return 0;
 }
 
 vector<Rect> detectAndDraw( Mat& img,
-                   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
-                   double scale)
+						   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
+						   double scale)
 {
-    int i = 0;
-    double t = 0;
-    vector<Rect> faces;
-    const static Scalar colors[] =  { CV_RGB(0,0,255),
-        CV_RGB(0,128,255),
-        CV_RGB(0,255,255),
-        CV_RGB(0,255,0),
-        CV_RGB(255,128,0),
-        CV_RGB(255,255,0),
-        CV_RGB(255,0,0),
-        CV_RGB(255,0,255)} ;
-    Mat gray, smallImg( cvRound (img.rows/scale), cvRound(img.cols/scale), CV_8UC1 );
+	int i = 0;
+	double t = 0;
+	vector<Rect> faces;
+	const static Scalar colors[] =  { CV_RGB(0,0,255),
+		CV_RGB(0,128,255),
+		CV_RGB(0,255,255),
+		CV_RGB(0,255,0),
+		CV_RGB(255,128,0),
+		CV_RGB(255,255,0),
+		CV_RGB(255,0,0),
+		CV_RGB(255,0,255)} ;
+	Mat gray, smallImg( cvRound (img.rows/scale), cvRound(img.cols/scale), CV_8UC1 );
 
-    cvtColor( img, gray, CV_BGR2GRAY );
-    resize( gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR );
-    equalizeHist( smallImg, smallImg );
+	cvtColor( img, gray, CV_BGR2GRAY );
+	resize( gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR );
+	equalizeHist( smallImg, smallImg );
 
-    t = (double)cvGetTickCount();
-    cascade.detectMultiScale( smallImg, faces,
-        1.1, 2, 0
-        //|CV_HAAR_FIND_BIGGEST_OBJECT
-        //|CV_HAAR_DO_ROUGH_SEARCH
-        |CV_HAAR_SCALE_IMAGE
-        ,
-        Size(30, 30) );
-    t = (double)cvGetTickCount() - t;
-    printf( "detection time = %g ms\n", t/((double)cvGetTickFrequency()*1000.) );
-    for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++ )
-    {
-        Mat smallImgROI;
-        vector<Rect> nestedObjects;
-        Point center;
-        Scalar color = colors[i%8];
-        int radius;
-        center.x = cvRound((r->x + r->width*0.5)*scale);
-        center.y = cvRound((r->y + r->height*0.5)*scale);
-        radius = cvRound((r->width + r->height)*0.25*scale);
-        circle( img, center, radius, color, 3, 8, 0 );
-        if( nestedCascade.empty() )
-            continue;
-        smallImgROI = smallImg(*r);
-        nestedCascade.detectMultiScale( smallImgROI, nestedObjects,
-            1.1, 2, 0
-            //|CV_HAAR_FIND_BIGGEST_OBJECT
-            //|CV_HAAR_DO_ROUGH_SEARCH
-            //|CV_HAAR_DO_CANNY_PRUNING
-            |CV_HAAR_SCALE_IMAGE
-            ,
-            Size(30, 30) );
-        for( vector<Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
-        {
-            center.x = cvRound((r->x + nr->x + nr->width*0.5)*scale);
-            center.y = cvRound((r->y + nr->y + nr->height*0.5)*scale);
-            radius = cvRound((nr->width + nr->height)*0.25*scale);
-            circle( img, center, radius, color, 3, 8, 0 );
-        }
-    }  
-    cv::imshow( "result", img );   
+	t = (double)cvGetTickCount();
+	cascade.detectMultiScale( smallImg, faces,
+		1.1, 2, 0
+		//|CV_HAAR_FIND_BIGGEST_OBJECT
+		//|CV_HAAR_DO_ROUGH_SEARCH
+		|CV_HAAR_SCALE_IMAGE
+		,
+		Size(30, 30) );
+	t = (double)cvGetTickCount() - t;
+	printf( "detection time = %g ms\n", t/((double)cvGetTickFrequency()*1000.) );
+	for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++ )
+	{
+		Mat smallImgROI;
+		vector<Rect> nestedObjects;
+		Point center;
+		Scalar color = colors[i%8];
+		int radius;
+		center.x = cvRound((r->x + r->width*0.5)*scale);
+		center.y = cvRound((r->y + r->height*0.5)*scale);
+		radius = cvRound((r->width + r->height)*0.25*scale);
+		circle( img, center, radius, color, 3, 8, 0 );
+		if( nestedCascade.empty() )
+			continue;
+		smallImgROI = smallImg(*r);
+		nestedCascade.detectMultiScale( smallImgROI, nestedObjects,
+			1.1, 2, 0
+			//|CV_HAAR_FIND_BIGGEST_OBJECT
+			//|CV_HAAR_DO_ROUGH_SEARCH
+			//|CV_HAAR_DO_CANNY_PRUNING
+			|CV_HAAR_SCALE_IMAGE
+			,
+			Size(30, 30) );
+		for( vector<Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
+		{
+			center.x = cvRound((r->x + nr->x + nr->width*0.5)*scale);
+			center.y = cvRound((r->y + nr->y + nr->height*0.5)*scale);
+			radius = cvRound((nr->width + nr->height)*0.25*scale);
+			circle( img, center, radius, color, 3, 8, 0 );
+		}
+	}  
+	cv::imshow( "result", img );   	
 	return(faces);
 }

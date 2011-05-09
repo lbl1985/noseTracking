@@ -30,6 +30,7 @@ static CvMemStorage* storage = 0;
 // Control QT and detection
 bool QT = false;
 bool Detection = true;
+bool isTracking = false;
 // Create a new Haar classifier
 //static CvHaarClassifierCascade* cascade = 0;
 //static CvHaarClassifierCascade* nestedCascade = 0;
@@ -216,13 +217,83 @@ int main(int argc, char** argv)
 
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
-		if (!faces.empty())		
+		if (!faces.empty())	
+		{
 			Detection = false;
+			isTracking = true;
 
 			// Face Tracking Starts here
+			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
+			{
+				selection.x = r->x;
+				selection.y = r->y;
+				selection.height = r->height;
+				selection.width  = r->width;
+			}
+		}
 
+		if (isTracking)
+		{
+			image = current_frame.rgb();
+			cv::Mat& rimage = image;
+			cvtColor(rimage, hsv, CV_BGR2HSV);
+			
+			if (trackObject)
+			{
+				int _vmin = vmin, _vmax = vmax;
+
+				inRange(hsv, Scalar(0, smin, MIN(_vmin,_vmax)),
+					Scalar(180, 256, MAX(_vmin, _vmax)), mask);
+				int ch[] = {0, 0};
+				hue.create(hsv.size(), hsv.depth());
+				mixChannels(&hsv, 1, &hue, 1, ch, 1);
+
+				if( trackObject < 0 )
+				{
+					Mat roi(hue, selection), maskroi(mask, selection);
+					calcHist(&roi, 1, 0, maskroi, hist, 1, &hsize, &phranges);
+					normalize(hist, hist, 0, 255, CV_MINMAX);
+
+					trackWindow = selection;
+					trackObject = 1;
+
+					histimg = Scalar::all(0);
+					int binW = histimg.cols / hsize;
+					Mat buf(1, hsize, CV_8UC3);
+					for( int i = 0; i < hsize; i++ )
+						buf.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsize), 255, 255);
+					cvtColor(buf, buf, CV_HSV2BGR);
+
+					for( int i = 0; i < hsize; i++ )
+					{
+						int val = saturate_cast<int>(hist.at<float>(i)*histimg.rows/255);
+						rectangle( histimg, Point(i*binW,histimg.rows),
+							Point((i+1)*binW,histimg.rows - val),
+							Scalar(buf.at<Vec3b>(i)), -1, 8 );
+					}
+				}
+
+				calcBackProject(&hue, 1, 0, hist, backproj, &phranges);
+				backproj &= mask;
+				RotatedRect trackBox = CamShift(backproj, trackWindow,
+					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
+
+				if( backprojMode )
+					cvtColor( backproj, image, CV_GRAY2BGR );
+				ellipse( image, trackBox, Scalar(0,0,255), 3, CV_AA );
+			}
+
+			if( selection.width > 0 && selection.height > 0 )
+			{
+				Mat roi(image, selection);
+				bitwise_not(roi, roi);
+				trackObject = -1;
+			}
+
+			imshow( "CamShift Demo", image );
+			imshow( "Histogram", histimg );
+		}
 		
-
 
 
 

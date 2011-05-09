@@ -38,6 +38,17 @@ bool Detection = true;
 string cascade_name = "haarcascade_frontalface_alt.xml";
 string nestedCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
 
+// Face Tracking Declearations
+Mat image;
+bool backprojMode = false;
+bool selectObject = false;
+int trackObject = 0;
+bool showHist = true;
+Point origin;
+Rect selection;
+int vmin = 10, vmax = 256, smin = 30;
+
+
 // Function prototype for detecting and drawing an object from an image
 vector<Rect> detectAndDraw( Mat& img,
 						   CascadeClassifier& cascade, CascadeClassifier& nestedCascade,
@@ -48,19 +59,30 @@ void depthAndDraw(Mat& img, vector<Rect> faces);
 
 int main(int argc, char** argv)
 {
+	// QT UI Varables
 	QApplication::setGraphicsSystem("raster");
 	QApplication app (argc, argv);
-
+	
+	// ---- Facial Detection Initialization ----
 	CascadeClassifier cascade, nestedCascade;
+	//cascade = (CvHaarClassifierCascade&)cvLoad(cascade_name, 0, 0, 0);
+	//nestedCascade = (CvHaarClassifierCascade&)cvLoad(nestedCascadeName, 0, 0, 0);
+	cascade.load(cascade_name);
+	nestedCascade.load(nestedCascadeName);
+	storage = cvCreateMemStorage(0);
 
+	// ---- Face Tracking Declearations ----
+	Rect trackWindow;
+	RotatedRect trackBox;
+	int hsize = 16;
+	float hranges[] = {0,180};
+    const float* phranges = hranges;
+	
+	Mat hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
+
+	// ---- Images Saving Section ----
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
 	string filename;
-
-	/*KinectGrabber grabber;*/
-	ntk::NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
-	ntk::RGBDGrabber* grabber = 0;
-	//k_grabber->setHighRgbResolution(true);
-	k_grabber->initialize();	
 
 	// OpenCV Save an Video
 	CvVideoWriter *writer = 0;
@@ -70,12 +92,21 @@ int main(int argc, char** argv)
 	int frameH = 480;
 	writer = cvCreateVideoWriter("out.avi", CV_FOURCC('I', '4', '2', '0'), fps, cvSize(frameW, frameH), isColor);
 
+	/*KinectGrabber grabber;*/
+	ntk::NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+	ntk::RGBDGrabber* grabber = 0;
+	//k_grabber->setHighRgbResolution(true);
+	k_grabber->initialize();	
+	grabber = k_grabber;
+	
+
 	// Postprocess raw kinect data.
 	// Tell the processor to transform raw depth into meters using baseline-offset technique.
+	ntk::NiteProcessor processor;
+	processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
+	
 
-	grabber = k_grabber;
-
-	// MeshGenerator Functionality Added
+	// ---- MeshGenerator Functionality ----
 	ntk::MeshGenerator* mesh_generator = 0;
 	ntk::MeshViewer* mesh_view;
 	ntk::RGBDCalibration* calib_data = 0;
@@ -86,35 +117,13 @@ int main(int argc, char** argv)
 	{
 		mesh_generator = new MeshGenerator();
 		grabber->setCalibrationData(*calib_data);
-	}
-
-
-
-
-	ntk::NiteProcessor processor;
-	processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
+	}	
 
 	// m_processor for mesh_viewer
 	ntk::NiteProcessor* m_processor = 0;
 	m_processor = new ntk::NiteProcessor();
-
-
-
-
-	// OpenCV windows.
-	if(!QT)
-	{
-		namedWindow("color");
-		namedWindow("depth");
-		namedWindow("depth_as_color");
-		namedWindow("result");
-		namedWindow("ROI");
-		namedWindow("depthDraw");
-	}
-
-	// Current image. An RGBDImage stores rgb and depth data.
-	ntk::RGBDImage current_frame;
-	ntk::RGBDImage last_frame;
+	
+	
 	GuiController gui_controller (*grabber, *m_processor);
 	if(QT)
 	{		
@@ -129,34 +138,49 @@ int main(int argc, char** argv)
 			gui_controller.setMeshGenerator(*mesh_generator);
 	}
 
-	grabber->start();
+	// ---- OpenCV windows ----
+	if(!QT)
+	{
+		namedWindow("color");
+		namedWindow("depth");
+		namedWindow("depth_as_color");
+		namedWindow("result");
+		namedWindow("ROI");
+		namedWindow("depthDraw");
+		namedWindow( "Histogram", 1 );
+		namedWindow( "CamShift Demo", 1 );
+		//setMouseCallback( "CamShift Demo", onMouse, 0 );
+		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
+		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
+		createTrackbar( "Smin", "CamShift Demo", &smin, 256, 0 );
+	}
 
-	//cascade = (CvHaarClassifierCascade&)cvLoad(cascade_name, 0, 0, 0);
-	//nestedCascade = (CvHaarClassifierCascade&)cvLoad(nestedCascadeName, 0, 0, 0);
-	cascade.load(cascade_name);
-	nestedCascade.load(nestedCascadeName);
-	storage = cvCreateMemStorage(0);
+	
+	
+	
+	// Current image. An RGBDImage stores rgb and depth data.
+	ntk::RGBDImage current_frame;
+	ntk::RGBDImage last_frame;
+
+	grabber->start();	
 
 	if (QT)
 		app.exec();
 
 	while (true)
 	{
-	
+		// ---- Images Grabber Section ----
 		grabber->waitForNextFrame();
 		grabber->copyImageTo(current_frame);
 		processor.processImage(current_frame);	
 
 		// Show the frames per second of the grabber
-		//int fps = grabber.frameRate();
 		int fps = grabber->frameRate();
 		cv::putText(current_frame.rgbRef(),
 			cv::format("%d fps", fps),
 			Point(10,20), 0, 0.5, Scalar(255,0,0,255));
 
 		// Display the color image	
-		//imshow("color", current_frame.rgb());
-
 		IplImage SaveImg = current_frame.rgb();
 		IplImage* pSaveImg = &SaveImg;
 
@@ -167,7 +191,8 @@ int main(int argc, char** argv)
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
 		if(!iswrite) printf("Could not save\n");
 		cvWriteFrame(writer, pSaveImg);
-
+		
+		// ---- Facial Detection Section ----
 		if (Detection)
 		{
 			cv::Mat frame_copy = current_frame.rgb();
@@ -191,8 +216,14 @@ int main(int argc, char** argv)
 
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
-		if (!faces.empty())
+		if (!faces.empty())		
 			Detection = false;
+
+			// Face Tracking Starts here
+
+		
+
+
 
 
 
@@ -224,7 +255,8 @@ int main(int argc, char** argv)
 		default:
 			;
 		}
-
+		
+		// ---- Post Processing Section ----
 		if (!Detection)
 		{
 			destroyWindow("result");
@@ -232,6 +264,7 @@ int main(int argc, char** argv)
 			destroyWindow("depthDraw");
 		}
 	}
+
 	delete mesh_generator;
 	cvReleaseVideoWriter(&writer);
 	return 0;

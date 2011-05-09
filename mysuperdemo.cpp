@@ -27,8 +27,9 @@ using namespace std;
 // Create memory for calculations
 static CvMemStorage* storage = 0;
 
-// Control QT or Images
+// Control QT and detection
 bool QT = false;
+bool Detection = false;
 // Create a new Haar classifier
 //static CvHaarClassifierCascade* cascade = 0;
 //static CvHaarClassifierCascade* nestedCascade = 0;
@@ -60,6 +61,14 @@ int main(int argc, char** argv)
 	ntk::RGBDGrabber* grabber = 0;
 	//k_grabber->setHighRgbResolution(true);
 	k_grabber->initialize();	
+
+	// OpenCV Save an Video
+	CvVideoWriter *writer = 0;
+	int isColor = 1;
+	int fps = 30;
+	int frameW = 640;
+	int frameH = 480;
+	writer = cvCreateVideoWriter("out.avi", CV_FOURCC('I', '4', '2', '0'), fps, cvSize(frameW, frameH), isColor);
 
 	// Postprocess raw kinect data.
 	// Tell the processor to transform raw depth into meters using baseline-offset technique.
@@ -160,10 +169,14 @@ int main(int argc, char** argv)
 		vector<Rect> faces;
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
 		if(!iswrite) printf("Could not save\n");
-
-		cv::Mat frame_copy = current_frame.rgb();
-		cv::Mat& rframe_copy = frame_copy;
-		faces = detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
+		cvWriteFrame(writer, pSaveImg);
+		
+		if (Detection)
+		{
+			cv::Mat frame_copy = current_frame.rgb();
+			cv::Mat& rframe_copy = frame_copy;
+			faces = detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
+		}
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());
@@ -172,8 +185,11 @@ int main(int argc, char** argv)
 		cv::Mat3b depth_as_color;
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
 		imshow("depth_as_color", depth_as_color);
-
-		depthAndDraw(depth_as_color, faces);
+		
+		if (Detection)
+		{
+			depthAndDraw(depth_as_color, faces);
+		}
 
 
 
@@ -193,6 +209,7 @@ int main(int argc, char** argv)
 		}
 	}
 	delete mesh_generator;
+	cvReleaseVideoWriter(&writer);
 	return 0;
 }
 

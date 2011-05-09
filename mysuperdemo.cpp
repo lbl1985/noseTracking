@@ -29,7 +29,7 @@ static CvMemStorage* storage = 0;
 
 // Control QT and detection
 bool QT = false;
-bool Detection = false;
+bool Detection = true;
 // Create a new Haar classifier
 //static CvHaarClassifierCascade* cascade = 0;
 //static CvHaarClassifierCascade* nestedCascade = 0;
@@ -142,10 +142,7 @@ int main(int argc, char** argv)
 
 	while (true)
 	{
-		/*grabber.waitForNextFrame();
-		grabber.copyImageTo(current_frame);
-		processor.processImage(current_frame);*/
-
+	
 		grabber->waitForNextFrame();
 		grabber->copyImageTo(current_frame);
 		processor.processImage(current_frame);	
@@ -170,13 +167,14 @@ int main(int argc, char** argv)
 		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
 		if(!iswrite) printf("Could not save\n");
 		cvWriteFrame(writer, pSaveImg);
-		
+
 		if (Detection)
 		{
 			cv::Mat frame_copy = current_frame.rgb();
 			cv::Mat& rframe_copy = frame_copy;
-			faces = detectAndDraw(rframe_copy, cascade, nestedCascade, 1);
+			faces = detectAndDraw(rframe_copy, cascade, nestedCascade, 1);			
 		}
+
 
 		// Show the depth image as normalized gray scale
 		imshow_normalized("depth", current_frame.depth());
@@ -185,11 +183,16 @@ int main(int argc, char** argv)
 		cv::Mat3b depth_as_color;
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
 		imshow("depth_as_color", depth_as_color);
-		
+
 		if (Detection)
 		{
 			depthAndDraw(depth_as_color, faces);
 		}
+
+		// ---- Face Tracking Section ----
+		// If face detected. No detection required any further.
+		if (!faces.empty())
+			Detection = false;
 
 
 
@@ -199,13 +202,34 @@ int main(int argc, char** argv)
 
 		// Enable switching to InfraRead mode.
 		unsigned char c = cv::waitKey(10) & 0xff;
-		if (c == 'q')
+		switch (c)
+		{
+		case 'q':		
 			exit(0);
-		else if (c == 'm')
-		{	
-			// Mesh Showing
+			break;
+		case 'm':
+			// Mesh Showing, not finish developing yet. Interface reserved
 			mesh_generator->generate(last_frame);
 			mesh_view->addMesh(mesh_generator->mesh(), Pose3D(), MeshViewer::FLAT);
+			break;
+		case 'd':
+			// If Detection was false, turn it on, create windows.
+			if (!Detection)
+			{
+				Detection = true;
+				namedWindow("result");
+				namedWindow("ROI");
+				namedWindow("depthDraw");
+			}
+		default:
+			;
+		}
+
+		if (!Detection)
+		{
+			destroyWindow("result");
+			destroyWindow("ROI");
+			destroyWindow("depthDraw");
 		}
 	}
 	delete mesh_generator;
@@ -279,7 +303,7 @@ vector<Rect> detectAndDraw( Mat& img,
 			radius = cvRound((nr->width + nr->height)*0.25*scale);
 			circle( img, center, radius, color, 3, 8, 0 );
 		}
-		
+
 	}  
 	cv::imshow( "result", img );   	
 	return(faces);
@@ -314,24 +338,7 @@ void depthAndDraw(Mat& img, std::vector<Rect> faces)
 		center.y = cvRound((r->y + r->height*0.5)*scale);
 		radius = cvRound((r->width + r->height)*0.25*scale);
 		circle( img, center, radius, color, 3, 8, 0 );
-		/*if( nestedCascade.empty() )
-			continue;*/
-		//smallImgROI = smallImg(*r);
-		//nestedCascade.detectMultiScale( smallImgROI, nestedObjects,
-		//	1.1, 2, 0
-		//	//|CV_HAAR_FIND_BIGGEST_OBJECT
-		//	//|CV_HAAR_DO_ROUGH_SEARCH
-		//	//|CV_HAAR_DO_CANNY_PRUNING
-		//	|CV_HAAR_SCALE_IMAGE
-		//	,
-		//	Size(30, 30) );
-		/*for( vector<Rect>::const_iterator nr = nestedObjects.begin(); nr != nestedObjects.end(); nr++ )
-		{
-			center.x = cvRound((r->x + nr->x + nr->width*0.5)*scale);
-			center.y = cvRound((r->y + nr->y + nr->height*0.5)*scale);
-			radius = cvRound((nr->width + nr->height)*0.25*scale);
-			circle( img, center, radius, color, 3, 8, 0 );
-		}*/
+
 		cv::imshow("depthDraw", img);
 	}  
 }

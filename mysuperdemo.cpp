@@ -150,6 +150,7 @@ int main(int argc, char** argv)
 		namedWindow("depthDraw");
 		namedWindow( "Histogram", 1 );
 		namedWindow( "CamShift Demo", 1 );
+		namedWindow("debug", 1);
 		//setMouseCallback( "CamShift Demo", onMouse, 0 );
 		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
 		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
@@ -229,6 +230,8 @@ int main(int argc, char** argv)
 				selection.y = r->y;
 				selection.height = r->height;
 				selection.width  = r->width;
+
+				
 			}
 		}
 
@@ -237,7 +240,8 @@ int main(int argc, char** argv)
 			image = current_frame.rgb();
 			cv::Mat& rimage = image;
 			cvtColor(rimage, hsv, CV_BGR2HSV);
-			
+			imshow("debug", image);
+
 			if (trackObject)
 			{
 				int _vmin = vmin, _vmax = vmax;
@@ -247,6 +251,8 @@ int main(int argc, char** argv)
 				int ch[] = {0, 0};
 				hue.create(hsv.size(), hsv.depth());
 				mixChannels(&hsv, 1, &hue, 1, ch, 1);
+
+				imshow( "debug", image );
 
 				if( trackObject < 0 )
 				{
@@ -271,19 +277,26 @@ int main(int argc, char** argv)
 							Point((i+1)*binW,histimg.rows - val),
 							Scalar(buf.at<Vec3b>(i)), -1, 8 );
 					}
+
+					
 				}
 
 				calcBackProject(&hue, 1, 0, hist, backproj, &phranges);
 				backproj &= mask;
 				RotatedRect trackBox = CamShift(backproj, trackWindow,
 					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
+				//trackWindow = trackBox.boundingRect();
+
+				imshow( "debug", image );
 
 				if( backprojMode )
 					cvtColor( backproj, image, CV_GRAY2BGR );
 				ellipse( image, trackBox, Scalar(0,0,255), 3, CV_AA );
-			}
 
-			if( selection.width > 0 && selection.height > 0 )
+				imshow( "debug", image );
+			}
+			
+			if( !trackObject && selection.width > 0 && selection.height > 0 )
 			{
 				Mat roi(image, selection);
 				bitwise_not(roi, roi);

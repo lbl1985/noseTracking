@@ -57,6 +57,9 @@ vector<Rect> detectAndDraw( Mat& img,
 // Function for visualize the depth images with facial detection region
 void depthAndDraw(Mat& img, vector<Rect> faces);
 
+// Nose Tracking region selection
+Rect noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame);
+
 
 int main(int argc, char** argv)
 {
@@ -78,8 +81,12 @@ int main(int argc, char** argv)
 	int hsize = 16;
 	float hranges[] = {0,180};
     const float* phranges = hranges;
-	
 	Mat hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
+
+	// ---- Nose Tracking Declearations ----
+	Rect faceTrackWindow;
+	
+	
 
 	// ---- Images Saving Section ----
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
@@ -232,9 +239,7 @@ int main(int argc, char** argv)
 				selection.x = r->x;
 				selection.y = r->y;
 				selection.height = r->height;
-				selection.width  = r->width;
-
-				
+				selection.width  = r->width;				
 			}
 		}
 
@@ -288,7 +293,7 @@ int main(int argc, char** argv)
 				backproj &= mask;
 				RotatedRect trackBox = CamShift(backproj, trackWindow,
 					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
-				//trackWindow = trackBox.boundingRect();
+				faceTrackWindow = trackBox.boundingRect();
 
 				imshow( "debug", image );
 
@@ -312,67 +317,62 @@ int main(int argc, char** argv)
 		
 		
 		// ---- Nose Tracking ----
-		if (!faces.empty())
+		if (!faces.empty() || (faceTrackWindow.width >0 && faceTrackWindow.height > 0))
 		//if (false)
-		{
-			//Mat Depth = current_frame.depth();
-			//cv::Mat1f& Depth_normal = current_frame.mappedDepthRef();
-			cv::Mat Depth_normal = current_frame.depth();
-			
-			//normalize(Depth, Depth_normal, 0, 255, NORM_MINMAX, 0);
-			
+		{			
+			//cv::Mat Depth_normal = current_frame.depth();
+						
 			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
 			{
-				Point minLoc, maxLoc;
-				double minVal, maxVal, ratio = 5;
-				Rect nose;
-				IplImage noseROI = current_frame.rgb();
-				Mat noseRoiRgb = current_frame.rgb();
-				Mat faceROI;
-				Mat nonZeroMask;
+				Rect nose = noseRegion(*r, &current_frame);
+				//Point minLoc, maxLoc;
+				//double minVal, maxVal, ratio = 5;
+				//Rect nose;
+				//IplImage noseROI = current_frame.rgb();
+				//Mat noseRoiRgb = current_frame.rgb();
+				//Mat faceROI;
+				//Mat nonZeroMask;
 
-				selection.x = r->x;
-				selection.y = r->y;
-				selection.height = r->height;
-				selection.width  = r->width;
-				
-				Rect& rSelection = selection;
-				faceROI = Depth_normal(rSelection);
-				noseRoiRgb = noseRoiRgb(rSelection);
-				cv::Mat3b depth_as_color_face;
-				compute_color_encoded_depth(faceROI, depth_as_color_face);
-				
-				inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
+				//selection.x = r->x;
+				//selection.y = r->y;
+				//selection.height = r->height;
+				//selection.width  = r->width;
+				//
+				//Rect& rSelection = selection;
+				//faceROI = Depth_normal(rSelection);
+				//noseRoiRgb = noseRoiRgb(rSelection);
+				//cv::Mat3b depth_as_color_face;
+				//compute_color_encoded_depth(faceROI, depth_as_color_face);
+				//
+				//inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
 
+				//minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
 
-				minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
+				//cv::putText(noseRoiRgb,
+				//	cv::format("nose"),
+				//	minLoc, 0, 0.5, Scalar(255,0,0,255));
+				//imshow("faceROI", noseRoiRgb);
+				//
+				//// For debugging
+				///*nose.width = r->width / ratio;
+				//nose.height = r->height / ratio;
+				//nose.x = minLoc.x - nose.width / 2;
+				//nose.y = minLoc.y - nose.height / 2;
 
-				cv::putText(noseRoiRgb,
-					cv::format("nose"),
-					minLoc, 0, 0.5, Scalar(255,0,0,255));
-				imshow("faceROI", noseRoiRgb);
-				
-				// For debugging
-				/*nose.width = r->width / ratio;
-				nose.height = r->height / ratio;
-				nose.x = minLoc.x - nose.width / 2;
-				nose.y = minLoc.y - nose.height / 2;
-
-				noseRoiRgb = noseRoiRgb(nose);
-				imshow("noseROI", noseRoiRgb);*/
-
-				nose.width = r->width / ratio;
-				nose.height = r->height / ratio;
-				nose.x = minLoc.x + r->x - 1 - nose.width / 2;
-				nose.y = minLoc.y + r->y - 1 - nose.width / 2;
-				
-				
-				
-				//smallImgROIColor = img(*r);				
-				noseROI = current_frame.rgb();
-				//cvSetImageROI(&noseROI, selection);
-				cvSetImageROI(&noseROI, nose);
-				imshow("noseROI", &noseROI);
+				//noseRoiRgb = noseRoiRgb(nose);
+				//imshow("noseROI", noseRoiRgb);*/
+				//
+				//// Project index back into original whole image coordinate system.
+				//nose.width = r->width / ratio;
+				//nose.height = r->height / ratio;
+				//nose.x = minLoc.x + r->x - 1 - nose.width / 2;
+				//nose.y = minLoc.y + r->y - 1 - nose.width / 2;
+				//
+				////smallImgROIColor = img(*r);				
+				//noseROI = current_frame.rgb();
+				////cvSetImageROI(&noseROI, selection);
+				//cvSetImageROI(&noseROI, nose);
+				//imshow("noseROI", &noseROI);
 				
 			}
 		}
@@ -526,4 +526,59 @@ void depthAndDraw(Mat& img, std::vector<Rect> faces)
 
 		cv::imshow("depthDraw", img);
 	}  
+}
+
+Rect noseRegion(Rect r, ntk::RGBDImage* current_frame)
+{
+	cv::Mat Depth_normal = current_frame->depth();
+	
+	Point minLoc, maxLoc;
+	double minVal, maxVal, ratio = 5;
+	Rect nose;
+	IplImage noseROI = current_frame->rgb();
+	Mat noseRoiRgb = current_frame->rgb();
+	Mat faceROI;
+	Mat nonZeroMask;
+	
+	selection.x = r.x;
+	selection.y = r.y;
+	selection.height = r.height;
+	selection.width  = r.width;
+
+	Rect& rSelection = selection;
+	faceROI = Depth_normal(rSelection);
+	noseRoiRgb = noseRoiRgb(rSelection);
+	cv::Mat3b depth_as_color_face;
+	compute_color_encoded_depth(faceROI, depth_as_color_face);
+
+	inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
+
+	minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
+
+	cv::putText(noseRoiRgb,
+		cv::format("nose"),
+		minLoc, 0, 0.5, Scalar(255,0,0,255));
+	imshow("faceROI", noseRoiRgb);
+
+	// For debugging
+	/*nose.width = r->width / ratio;
+	nose.height = r->height / ratio;
+	nose.x = minLoc.x - nose.width / 2;
+	nose.y = minLoc.y - nose.height / 2;
+
+	noseRoiRgb = noseRoiRgb(nose);
+	imshow("noseROI", noseRoiRgb);*/
+
+	// Project index back into original whole image coordinate system.
+	nose.width = r.width / ratio;
+	nose.height = r.height / ratio;
+	nose.x = minLoc.x + r.x - 1 - nose.width / 2;
+	nose.y = minLoc.y + r.y - 1 - nose.width / 2;
+
+	//smallImgROIColor = img(*r);				
+	noseROI = current_frame->rgb();
+	//cvSetImageROI(&noseROI, selection);
+	cvSetImageROI(&noseROI, nose);
+	imshow("noseROI", &noseROI);
+	return(nose);
 }

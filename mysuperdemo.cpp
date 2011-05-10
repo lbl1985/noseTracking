@@ -47,7 +47,7 @@ int trackObject = 0;
 bool showHist = true;
 Point origin;
 Rect selection;
-int vmin = 10, vmax = 256, smin = 30;
+int vmin = 10, vmax = 256, smin = 92;
 
 
 // Function prototype for detecting and drawing an object from an image
@@ -151,6 +151,8 @@ int main(int argc, char** argv)
 		namedWindow( "Histogram", 1 );
 		namedWindow( "CamShift Demo", 1 );
 		namedWindow("debug", 1);
+		namedWindow("faceROI", 1);
+		namedWindow("noseROI", 1);
 		//setMouseCallback( "CamShift Demo", onMouse, 0 );
 		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
 		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
@@ -218,7 +220,8 @@ int main(int argc, char** argv)
 
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
-		if (!faces.empty())	
+		//if (!faces.empty())	
+		if (false)	
 		{
 			Detection = false;
 			isTracking = true;
@@ -307,7 +310,71 @@ int main(int argc, char** argv)
 			imshow( "Histogram", histimg );
 		}
 		
+		
+		// ---- Nose Tracking ----
+		if (!faces.empty())
+		//if (false)
+		{
+			//Mat Depth = current_frame.depth();
+			//cv::Mat1f& Depth_normal = current_frame.mappedDepthRef();
+			cv::Mat Depth_normal = current_frame.depth();
+			
+			//normalize(Depth, Depth_normal, 0, 255, NORM_MINMAX, 0);
+			
+			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
+			{
+				Point minLoc, maxLoc;
+				double minVal, maxVal, ratio = 5;
+				Rect nose;
+				IplImage noseROI = current_frame.rgb();
+				Mat noseRoiRgb = current_frame.rgb();
+				Mat faceROI;
+				Mat nonZeroMask;
 
+				selection.x = r->x;
+				selection.y = r->y;
+				selection.height = r->height;
+				selection.width  = r->width;
+				
+				Rect& rSelection = selection;
+				faceROI = Depth_normal(rSelection);
+				noseRoiRgb = noseRoiRgb(rSelection);
+				cv::Mat3b depth_as_color_face;
+				compute_color_encoded_depth(faceROI, depth_as_color_face);
+				
+				inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
+
+
+				minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
+
+				cv::putText(noseRoiRgb,
+					cv::format("nose"),
+					minLoc, 0, 0.5, Scalar(255,0,0,255));
+				imshow("faceROI", noseRoiRgb);
+				
+
+				nose.width = r->width / ratio;
+				nose.height = r->height / ratio;
+				nose.x = minLoc.x - nose.width / 2;
+				nose.y = minLoc.y - nose.height / 2;
+				//noseRoiRgb = noseRoiRgb(nose);
+				//imshow("noseROI", noseRoiRgb);
+
+				/*nose.width = r->width / ratio;
+				nose.height = r->height / ratio;
+				nose.x = maxLoc.x + r->x - 1 - nose.width / 2;
+				nose.y = maxLoc.y + r->y - 1 - nose.width / 2;*/
+				
+				
+				
+				//smallImgROIColor = img(*r);				
+				//noseROI = current_frame.rgb();
+				/*cvSetImageROI(&noseROI, selection);
+				cvSetImageROI(&noseROI, nose);
+				imshow("noseROI", &noseROI);*/
+				
+			}
+		}
 
 
 

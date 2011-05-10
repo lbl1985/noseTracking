@@ -352,26 +352,27 @@ int main(int argc, char** argv)
 					minLoc, 0, 0.5, Scalar(255,0,0,255));
 				imshow("faceROI", noseRoiRgb);
 				
-
-				nose.width = r->width / ratio;
+				// For debugging
+				/*nose.width = r->width / ratio;
 				nose.height = r->height / ratio;
 				nose.x = minLoc.x - nose.width / 2;
 				nose.y = minLoc.y - nose.height / 2;
-				//noseRoiRgb = noseRoiRgb(nose);
-				//imshow("noseROI", noseRoiRgb);
 
-				/*nose.width = r->width / ratio;
+				noseRoiRgb = noseRoiRgb(nose);
+				imshow("noseROI", noseRoiRgb);*/
+
+				nose.width = r->width / ratio;
 				nose.height = r->height / ratio;
-				nose.x = maxLoc.x + r->x - 1 - nose.width / 2;
-				nose.y = maxLoc.y + r->y - 1 - nose.width / 2;*/
+				nose.x = minLoc.x + r->x - 1 - nose.width / 2;
+				nose.y = minLoc.y + r->y - 1 - nose.width / 2;
 				
 				
 				
 				//smallImgROIColor = img(*r);				
-				//noseROI = current_frame.rgb();
-				/*cvSetImageROI(&noseROI, selection);
+				noseROI = current_frame.rgb();
+				//cvSetImageROI(&noseROI, selection);
 				cvSetImageROI(&noseROI, nose);
-				imshow("noseROI", &noseROI);*/
+				imshow("noseROI", &noseROI);
 				
 			}
 		}

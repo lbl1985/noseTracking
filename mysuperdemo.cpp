@@ -47,8 +47,15 @@ int trackObject = 0;
 bool showHist = true;
 Point origin;
 Rect selection;
+
 int vmin = 10, vmax = 256, smin = 92;
 
+// Nose Tracking Declearations
+Mat imageNose;
+int trackObjectNose = 0;
+Point originNose;
+Rect selectionNose;
+int vminNose = 10, vmaxNose = 256, sminNose = 92;
 
 // Function prototype for detecting and drawing an object from an image
 vector<Rect> detectAndDraw( Mat& img,
@@ -59,6 +66,9 @@ void depthAndDraw(Mat& img, vector<Rect> faces);
 
 // Nose Tracking region selection
 Rect noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame);
+
+// Force rect in image bound
+Rect checkRect(Rect r, CvSize siz);
 
 
 int main(int argc, char** argv)
@@ -87,7 +97,12 @@ int main(int argc, char** argv)
 	Rect faceTrackWindow;
 	Rect nose;
 	
-	
+	Rect trackWindowNose;
+	RotatedRect trackBoxNose;
+	int hsizeNose = 16;
+	float hrangesNose[] = {0,180};
+    const float* phrangesNose = hrangesNose;
+	Mat hsvNose, hueNose, maskNose, histNose, histimgNose = Mat::zeros(200, 320, CV_8UC3), backprojNose;
 
 	// ---- Images Saving Section ----
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
@@ -228,8 +243,8 @@ int main(int argc, char** argv)
 
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
-		//if (!faces.empty())	
-		if (false)	
+		if (!faces.empty())	
+		//if (false)	
 		{
 			Detection = false;
 			isTracking = true;
@@ -293,9 +308,11 @@ int main(int argc, char** argv)
 				calcBackProject(&hue, 1, 0, hist, backproj, &phranges);
 				backproj &= mask;
 				RotatedRect trackBox = CamShift(backproj, trackWindow,
-					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
+					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));				
+				
 				faceTrackWindow = trackBox.boundingRect();
-
+				faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
+				
 				imshow( "debug", image );
 
 				if( backprojMode )
@@ -324,11 +341,89 @@ int main(int argc, char** argv)
 			if (!faces.empty())						
 				for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
 				{
-					nose = noseRegion(*r, &current_frame);
+					selectionNose = noseRegion(*r, &current_frame);
 				}
 			else
-				nose = noseRegion(faceTrackWindow, &current_frame);
+				selectionNose = noseRegion(faceTrackWindow, &current_frame);
 		}
+
+
+
+		/*if (isTracking)
+		{
+			imageNose = current_frame.rgb();
+			cv::Mat& rimageNose = imageNose;
+			cvtColor(rimageNose, hsvNose, CV_BGR2HSV);
+			imshow("debug", imageNose);
+
+			if (trackObjectNose)
+			{
+				int _vminNose = vminNose, _vmaxNose = vmaxNose;
+
+				inRange(hsvNose, Scalar(0, sminNose, MIN(_vminNose,_vmaxNose)),
+					Scalar(180, 256, MAX(_vminNose, _vmaxNose)), maskNose);
+				int chNose[] = {0, 0};
+				hueNose.create(hsvNose.size(), hsvNose.depth());
+				mixChannels(&hsvNose, 1, &hueNose, 1, chNose, 1);
+
+				imshow( "debug", imageNose );
+
+				if( trackObjectNose < 0 )
+				{
+					Mat roiNose(hueNose, selectionNose), maskroiNose(maskNose, selectionNose);
+					calcHist(&roiNose, 1, 0, maskroiNose, histNose, 1, &hsizeNose, &phrangesNose);
+					normalize(histNose, histNose, 0, 255, CV_MINMAX);
+
+					trackWindowNose = selectionNose;
+					trackObjectNose = 1;
+
+					histimgNose = Scalar::all(0);
+					int binWNose = histimgNose.cols / hsizeNose;
+					Mat bufNose(1, hsizeNose, CV_8UC3);
+					for( int i = 0; i < hsizeNose; i++ )
+						bufNose.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsizeNose), 255, 255);
+					cvtColor(bufNose, bufNose, CV_HSV2BGR);
+
+					for( int i = 0; i < hsizeNose; i++ )
+					{
+						int valNose = saturate_cast<int>(histNose.at<float>(i)*histimgNose.rows/255);
+						rectangle( histimgNose, Point(i*binWNose,histimg.rows),
+							Point((i+1)*binWNose,histimgNose.rows - valNose),
+							Scalar(bufNose.at<Vec3b>(i)), -1, 8 );
+					}
+
+					
+				}
+
+				calcBackProject(&hueNose, 1, 0, histNose, backprojNose, &phrangesNose);
+				backproj &= maskNose;
+				RotatedRect trackBoxNose = CamShift(backprojNose, trackWindowNose,
+					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
+				faceTrackWindow = trackBoxNose.boundingRect();
+
+				imshow( "debug", imageNose );
+
+				if( backprojMode )
+					cvtColor( backprojNose, imageNose, CV_GRAY2BGR );
+				ellipse( imageNose, trackBoxNose, Scalar(255,0,0), 3, CV_AA );
+
+				imshow( "debug", image );
+			}
+			
+			if( !trackObjectNose && selectionNose.width > 0 && selectionNose.height > 0 )
+			{
+				Mat roiNose(imageNose, selectionNose);
+				bitwise_not(roiNose, roiNose);
+				trackObjectNose = -1;
+			}
+
+			imshow( "CamShift Demo", imageNose );
+			imshow( "Histogram", histimgNose );*/
+		//}
+
+
+
+
 
 
 
@@ -529,9 +624,16 @@ Rect noseRegion(Rect r, ntk::RGBDImage* current_frame)
 	nose.y = minLoc.y + r.y - 1 - nose.width / 2;
 
 	//smallImgROIColor = img(*r);				
-	noseROI = current_frame->rgb();
-	//cvSetImageROI(&noseROI, selection);
+	/*noseROI = current_frame->rgb();
 	cvSetImageROI(&noseROI, nose);
-	imshow("noseROI", &noseROI);
+	imshow("noseROI", &noseROI);*/
 	return(nose);
+}
+
+Rect checkRect(Rect r, CvSize siz){
+	if (r.x + r.width >= siz.width)
+		r.width = r.width - (r.x + r.width - siz.width);
+	if (r.y + r.height >= siz.height)
+		r.height = r.height - (r.y + r.height - siz.height);
+	return (r);
 }

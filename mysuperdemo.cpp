@@ -85,6 +85,7 @@ int main(int argc, char** argv)
 
 	// ---- Nose Tracking Declearations ----
 	Rect faceTrackWindow;
+	Rect nose;
 	
 	
 
@@ -320,61 +321,13 @@ int main(int argc, char** argv)
 		if (!faces.empty() || (faceTrackWindow.width >0 && faceTrackWindow.height > 0))
 		//if (false)
 		{			
-			//cv::Mat Depth_normal = current_frame.depth();
-						
-			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
-			{
-				Rect nose = noseRegion(*r, &current_frame);
-				//Point minLoc, maxLoc;
-				//double minVal, maxVal, ratio = 5;
-				//Rect nose;
-				//IplImage noseROI = current_frame.rgb();
-				//Mat noseRoiRgb = current_frame.rgb();
-				//Mat faceROI;
-				//Mat nonZeroMask;
-
-				//selection.x = r->x;
-				//selection.y = r->y;
-				//selection.height = r->height;
-				//selection.width  = r->width;
-				//
-				//Rect& rSelection = selection;
-				//faceROI = Depth_normal(rSelection);
-				//noseRoiRgb = noseRoiRgb(rSelection);
-				//cv::Mat3b depth_as_color_face;
-				//compute_color_encoded_depth(faceROI, depth_as_color_face);
-				//
-				//inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
-
-				//minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
-
-				//cv::putText(noseRoiRgb,
-				//	cv::format("nose"),
-				//	minLoc, 0, 0.5, Scalar(255,0,0,255));
-				//imshow("faceROI", noseRoiRgb);
-				//
-				//// For debugging
-				///*nose.width = r->width / ratio;
-				//nose.height = r->height / ratio;
-				//nose.x = minLoc.x - nose.width / 2;
-				//nose.y = minLoc.y - nose.height / 2;
-
-				//noseRoiRgb = noseRoiRgb(nose);
-				//imshow("noseROI", noseRoiRgb);*/
-				//
-				//// Project index back into original whole image coordinate system.
-				//nose.width = r->width / ratio;
-				//nose.height = r->height / ratio;
-				//nose.x = minLoc.x + r->x - 1 - nose.width / 2;
-				//nose.y = minLoc.y + r->y - 1 - nose.width / 2;
-				//
-				////smallImgROIColor = img(*r);				
-				//noseROI = current_frame.rgb();
-				////cvSetImageROI(&noseROI, selection);
-				//cvSetImageROI(&noseROI, nose);
-				//imshow("noseROI", &noseROI);
-				
-			}
+			if (!faces.empty())						
+				for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
+				{
+					nose = noseRegion(*r, &current_frame);
+				}
+			else
+				nose = noseRegion(faceTrackWindow, &current_frame);
 		}
 
 

@@ -100,6 +100,8 @@ int main(int argc, char** argv)
 	// ---- Nose Tracking Declearations ----
 	Rect faceTrackWindow;
 	Rect nose;
+	Point nosePoint;
+	bool isPoint = true;
 	
 	Rect trackWindowNose;
 	RotatedRect trackBoxNose;
@@ -357,10 +359,17 @@ int main(int argc, char** argv)
 			if (!faces.empty())						
 				for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
 				{
-					selectionNose = noseRegion(*r, &current_frame);
+					// Rect as output
+					//selectionNose = noseRegion(*r, &current_frame);
+					// Point as output
+					nosePoint = noseRegion(*r, &current_frame, isPoint);
 				}
 			else
-				selectionNose = noseRegion(faceTrackWindow, &current_frame);
+			{
+				// Rect as output
+				//selectionNose = noseRegion(faceTrackWindow, &current_frame);
+				// Point as output
+				nosePoint = noseRegion(faceTrackWindow, &current_frame, isPoint);
 		}
 
 

@@ -66,9 +66,13 @@ void depthAndDraw(Mat& img, vector<Rect> faces);
 
 // Nose Tracking region selection
 Rect noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame);
+Point noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame, bool isPoint);
 
 // Force rect in image bound
 Rect checkRect(Rect r, CvSize siz);
+
+// Simple threshold Segmentation Function
+void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
 
 
 int main(int argc, char** argv)
@@ -103,6 +107,9 @@ int main(int argc, char** argv)
 	float hrangesNose[] = {0,180};
     const float* phrangesNose = hrangesNose;
 	Mat hsvNose, hueNose, maskNose, histNose, histimgNose = Mat::zeros(200, 320, CV_8UC3), backprojNose;
+
+	// ---- Depth threshold segmentation	 Declearations ----		
+	Mat odst; Mat& dst = odst;
 
 	// ---- Images Saving Section ----
 	string imgPath = "C:\CProjects\Kinect_OpenNI\RGBDemo-0.5.0-Source\RGBDemo-0.5.0-Source\mysuperdemo\imgPath";
@@ -176,6 +183,7 @@ int main(int argc, char** argv)
 		namedWindow("debug", 1);
 		namedWindow("faceROI", 1);
 		namedWindow("noseROI", 1);
+		namedWindow("thresholdSeg", 1);
 		//setMouseCallback( "CamShift Demo", onMouse, 0 );
 		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
 		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
@@ -257,6 +265,10 @@ int main(int argc, char** argv)
 				selection.height = r->height;
 				selection.width  = r->width;				
 			}
+
+			
+			thresholdSegmentation(selection, &current_frame, dst);
+			
 		}
 
 		if (isTracking)
@@ -329,6 +341,10 @@ int main(int argc, char** argv)
 				trackObject = -1;
 			}
 
+			// Threshold Segmentation 
+			if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
+				thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+
 			imshow( "CamShift Demo", image );
 			imshow( "Histogram", histimg );
 		}
@@ -349,77 +365,7 @@ int main(int argc, char** argv)
 
 
 		// ---- Nose CamShift Tracking Beginning Part ----
-		/*if (isTracking)
-		{
-			imageNose = current_frame.rgb();
-			cv::Mat& rimageNose = imageNose;
-			cvtColor(rimageNose, hsvNose, CV_BGR2HSV);
-			imshow("debug", imageNose);
-
-			if (trackObjectNose)
-			{
-				int _vminNose = vminNose, _vmaxNose = vmaxNose;
-
-				inRange(hsvNose, Scalar(0, sminNose, MIN(_vminNose,_vmaxNose)),
-					Scalar(180, 256, MAX(_vminNose, _vmaxNose)), maskNose);
-				int chNose[] = {0, 0};
-				hueNose.create(hsvNose.size(), hsvNose.depth());
-				mixChannels(&hsvNose, 1, &hueNose, 1, chNose, 1);
-
-				imshow( "debug", imageNose );
-
-				if( trackObjectNose < 0 )
-				{
-					Mat roiNose(hueNose, selectionNose), maskroiNose(maskNose, selectionNose);
-					calcHist(&roiNose, 1, 0, maskroiNose, histNose, 1, &hsizeNose, &phrangesNose);
-					normalize(histNose, histNose, 0, 255, CV_MINMAX);
-
-					trackWindowNose = selectionNose;
-					trackObjectNose = 1;
-
-					histimgNose = Scalar::all(0);
-					int binWNose = histimgNose.cols / hsizeNose;
-					Mat bufNose(1, hsizeNose, CV_8UC3);
-					for( int i = 0; i < hsizeNose; i++ )
-						bufNose.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsizeNose), 255, 255);
-					cvtColor(bufNose, bufNose, CV_HSV2BGR);
-
-					for( int i = 0; i < hsizeNose; i++ )
-					{
-						int valNose = saturate_cast<int>(histNose.at<float>(i)*histimgNose.rows/255);
-						rectangle( histimgNose, Point(i*binWNose,histimg.rows),
-							Point((i+1)*binWNose,histimgNose.rows - valNose),
-							Scalar(bufNose.at<Vec3b>(i)), -1, 8 );
-					}
-
-					
-				}
-
-				calcBackProject(&hueNose, 1, 0, histNose, backprojNose, &phrangesNose);
-				backproj &= maskNose;
-				RotatedRect trackBoxNose = CamShift(backprojNose, trackWindowNose,
-					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
-				faceTrackWindow = trackBoxNose.boundingRect();
-
-				imshow( "debug", imageNose );
-
-				if( backprojMode )
-					cvtColor( backprojNose, imageNose, CV_GRAY2BGR );
-				ellipse( imageNose, trackBoxNose, Scalar(255,0,0), 3, CV_AA );
-
-				imshow( "debug", image );
-			}
-			
-			if( !trackObjectNose && selectionNose.width > 0 && selectionNose.height > 0 )
-			{
-				Mat roiNose(imageNose, selectionNose);
-				bitwise_not(roiNose, roiNose);
-				trackObjectNose = -1;
-			}
-
-			imshow( "CamShift Demo", imageNose );
-			imshow( "Histogram", histimgNose );
-		}*/
+		// Backup Code is stored in file: Backup_Sections.txt
 		// ------ Ending Part ----
 
 
@@ -460,9 +406,9 @@ int main(int argc, char** argv)
 		// ---- Post Processing Section ----
 		if (!Detection)
 		{
-			destroyWindow("result");
-			destroyWindow("ROI");
-			destroyWindow("depthDraw");
+			//destroyWindow("result");
+			//destroyWindow("ROI");
+			//destroyWindow("depthDraw");
 		}
 	}
 
@@ -631,10 +577,98 @@ Rect noseRegion(Rect r, ntk::RGBDImage* current_frame)
 	return(nose);
 }
 
+Point noseRegion(Rect r, ntk::RGBDImage* current_frame, bool isPoint)
+{
+	cv::Mat Depth_normal = current_frame->depth();
+	
+	Point minLoc, maxLoc;
+	double minVal, maxVal, ratio = 5;
+	Rect nose;
+	IplImage noseROI = current_frame->rgb();
+	Mat noseRoiRgb = current_frame->rgb();
+	Mat faceROI;
+	Mat nonZeroMask;
+	
+	selection.x = r.x;
+	selection.y = r.y;
+	selection.height = r.height;
+	selection.width  = r.width;
+
+	Rect& rSelection = selection;
+	faceROI = Depth_normal(rSelection);
+	noseRoiRgb = noseRoiRgb(rSelection);
+	cv::Mat3b depth_as_color_face;
+	compute_color_encoded_depth(faceROI, depth_as_color_face);
+
+	inRange(faceROI, Scalar(0.001, 0.001, 0.001, 0.001), Scalar(255, 255, 255, 255), nonZeroMask);
+
+	minMaxLoc(faceROI, &minVal, &maxVal, &minLoc, &maxLoc, nonZeroMask);
+
+	cv::putText(noseRoiRgb,
+		cv::format("nose"),
+		minLoc, 0, 0.5, Scalar(255,0,0,255));
+	imshow("faceROI", noseRoiRgb);
+
+	// For debugging
+	/*nose.width = r->width / ratio;
+	nose.height = r->height / ratio;
+	nose.x = minLoc.x - nose.width / 2;
+	nose.y = minLoc.y - nose.height / 2;
+
+	noseRoiRgb = noseRoiRgb(nose);
+	imshow("noseROI", noseRoiRgb);*/
+
+	// Project index back into original whole image coordinate system.
+	nose.width = r.width / ratio;
+	nose.height = r.height / ratio;
+	nose.x = minLoc.x + r.x - 1 - nose.width / 2;
+	nose.y = minLoc.y + r.y - 1 - nose.width / 2;
+
+	//smallImgROIColor = img(*r);				
+	/*noseROI = current_frame->rgb();
+	cvSetImageROI(&noseROI, nose);
+	imshow("noseROI", &noseROI);*/
+	return(minLoc);
+}
+
 Rect checkRect(Rect r, CvSize siz){
 	if (r.x + r.width >= siz.width)
 		r.width = r.width - (r.x + r.width - siz.width);
 	if (r.y + r.height >= siz.height)
 		r.height = r.height - (r.y + r.height - siz.height);
 	return (r);
+}
+
+void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
+	Mat depth = current_frame->depth();
+	Rect& rr = r;
+	Mat depthROI = depth(rr), maskROI;
+	Mat& rDepthROI = depthROI, &rMaskROI = maskROI;
+	double var = 0.3;
+
+	// maskROI for nonZero values in the Face Region
+	inRange(depthROI, Scalar::all(0.001), Scalar::all(255), maskROI);
+	// Mean depth of Face Region
+	Scalar mFace = cv::mean(rDepthROI, rMaskROI);
+	//mFace[0]  = mFace[0] - mFace[0] * var;
+	inRange(depthROI, Scalar::all(0.001), mFace, maskROI);
+	mFace = cv::mean(rDepthROI, rMaskROI);
+	inRange(depthROI, Scalar::all(0.001), mFace, maskROI);
+	mFace = cv::mean(rDepthROI, rMaskROI);
+	
+
+
+	
+	// Mask for nearer than the mean of face.
+	inRange(depth, Scalar::all(0.001), mFace, dst);
+	Mat rgbImage = current_frame->rgb();
+	Mat outFrame = cvCreateMat(rgbImage.rows, rgbImage.cols, CV_32FC3);
+	rgbImage.copyTo(outFrame, dst);
+	Mat outFrameROI;
+	outFrameROI = outFrame(rr);
+	//cvCopy(&rgbImage, &outFrame, &dst);
+	//rgbImageROI = rgbImageROI(rr);
+	
+	imshow("ROI", outFrameROI);
+	//imshow("thresholdSeg", dst);
 }

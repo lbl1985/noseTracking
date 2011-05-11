@@ -1,0 +1,96 @@
+// ---- Nose CamShift Tracking Beginning Part ----
+		/*if (isTracking)
+		{
+			imageNose = current_frame.rgb();
+			cv::Mat& rimageNose = imageNose;
+			cvtColor(rimageNose, hsvNose, CV_BGR2HSV);
+			imshow("debug", imageNose);
+
+			if (trackObjectNose)
+			{
+				int _vminNose = vminNose, _vmaxNose = vmaxNose;
+
+				inRange(hsvNose, Scalar(0, sminNose, MIN(_vminNose,_vmaxNose)),
+					Scalar(180, 256, MAX(_vminNose, _vmaxNose)), maskNose);
+				int chNose[] = {0, 0};
+				hueNose.create(hsvNose.size(), hsvNose.depth());
+				mixChannels(&hsvNose, 1, &hueNose, 1, chNose, 1);
+
+				imshow( "debug", imageNose );
+
+				if( trackObjectNose < 0 )
+				{
+					Mat roiNose(hueNose, selectionNose), maskroiNose(maskNose, selectionNose);
+					calcHist(&roiNose, 1, 0, maskroiNose, histNose, 1, &hsizeNose, &phrangesNose);
+					normalize(histNose, histNose, 0, 255, CV_MINMAX);
+
+					trackWindowNose = selectionNose;
+					trackObjectNose = 1;
+
+					histimgNose = Scalar::all(0);
+					int binWNose = histimgNose.cols / hsizeNose;
+					Mat bufNose(1, hsizeNose, CV_8UC3);
+					for( int i = 0; i < hsizeNose; i++ )
+						bufNose.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsizeNose), 255, 255);
+					cvtColor(bufNose, bufNose, CV_HSV2BGR);
+
+					for( int i = 0; i < hsizeNose; i++ )
+					{
+						int valNose = saturate_cast<int>(histNose.at<float>(i)*histimgNose.rows/255);
+						rectangle( histimgNose, Point(i*binWNose,histimg.rows),
+							Point((i+1)*binWNose,histimgNose.rows - valNose),
+							Scalar(bufNose.at<Vec3b>(i)), -1, 8 );
+					}
+
+					
+				}
+
+				calcBackProject(&hueNose, 1, 0, histNose, backprojNose, &phrangesNose);
+				backproj &= maskNose;
+				RotatedRect trackBoxNose = CamShift(backprojNose, trackWindowNose,
+					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));
+				faceTrackWindow = trackBoxNose.boundingRect();
+
+				imshow( "debug", imageNose );
+
+				if( backprojMode )
+					cvtColor( backprojNose, imageNose, CV_GRAY2BGR );
+				ellipse( imageNose, trackBoxNose, Scalar(255,0,0), 3, CV_AA );
+
+				imshow( "debug", image );
+			}
+			
+			if( !trackObjectNose && selectionNose.width > 0 && selectionNose.height > 0 )
+			{
+				Mat roiNose(imageNose, selectionNose);
+				bitwise_not(roiNose, roiNose);
+				trackObjectNose = -1;
+			}
+
+			imshow( "CamShift Demo", imageNose );
+			imshow( "Histogram", histimgNose );
+		}*/
+		// ------ Ending Part ----
+		
+		
+// --------------------------------------------------------------------------------------------------
+		// Median depth of Face Region (Not successful for now. 10 May 2011 10:38PM)
+	/*Mat hist; int hsize = 16; 
+	
+	double depthMin, depthMax;
+	cv::Point pDepthMin, pDepthMax;
+	minMaxLoc(rDepthROI, &depthMin, &depthMax, &pDepthMin, &pDepthMax, rMaskROI);
+	
+	float hranges[] = {depthMin, depthMax};
+	const float* phranges = hranges;
+
+
+	calcHist(&depthROI, 1, 0, maskROI, hist, 1, &hsize, &phranges);
+	
+	double histMin, histMax;
+	cv::Point pHistMin, pHistMax;
+	
+	minMaxLoc(hist, &histMin, &histMax, &pHistMin, &pHistMax);*/
+	//double medianFace = 
+	
+// --------------------------------------------------------------------------------------------------

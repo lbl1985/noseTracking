@@ -348,7 +348,7 @@ int main(int argc, char** argv)
 		}
 
 
-
+		// ---- Nose CamShift Tracking Beginning Part ----
 		/*if (isTracking)
 		{
 			imageNose = current_frame.rgb();
@@ -418,8 +418,9 @@ int main(int argc, char** argv)
 			}
 
 			imshow( "CamShift Demo", imageNose );
-			imshow( "Histogram", histimgNose );*/
-		//}
+			imshow( "Histogram", histimgNose );
+		}*/
+		// ------ Ending Part ----
 
 
 

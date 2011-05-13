@@ -364,8 +364,7 @@ int main(int argc, char** argv)
 					// Point as output
 					nosePoint = noseRegion(*r, &current_frame, isPoint);
 				}
-			else
-			{
+			else			
 				// Rect as output
 				//selectionNose = noseRegion(faceTrackWindow, &current_frame);
 				// Point as output

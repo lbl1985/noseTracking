@@ -74,6 +74,8 @@ Rect checkRect(Rect r, CvSize siz);
 // Simple threshold Segmentation Function
 void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
 
+// Calculate the mean
+
 
 int main(int argc, char** argv)
 {
@@ -110,6 +112,9 @@ int main(int argc, char** argv)
     const float* phrangesNose = hrangesNose;
 	Mat hsvNose, hueNose, maskNose, histNose, histimgNose = Mat::zeros(200, 320, CV_8UC3), backprojNose;
 
+	// ---- Cursory Tracking based on Nose Tracking Declearations ----
+	std::list<Point> m_History;
+	int m_nHistorySize = 20;	// Max Size of Point History
 	// ---- Depth threshold segmentation	 Declearations ----		
 	Mat odst; Mat& dst = odst;
 
@@ -370,18 +375,65 @@ int main(int argc, char** argv)
 				// Point as output
 				nosePoint = noseRegion(faceTrackWindow, &current_frame, isPoint);
 		}
+		
+		// Cursor Tracking Based on Nost Tracking
+		
+		m_History.push_front(nosePoint);
+		if (m_History.size() > m_nHistorySize)
+			m_History.pop_back();
+		
+		if (m_History.size() >= 2){
+			// New Point
+			Point newPoint;
+			newPoint.x = m_History.front().x;
+			newPoint.y = m_History.front().y;
+			
+			// Old Point
+			POINT oldPoint;
+			std::list<Point>::iterator iter = m_History.begin();
+			iter++;
+			//oldPoint.x = iter->X;
+			//oldPoint.y = iter->Y;
+			oldPoint.x = iter->x;
+			oldPoint.y = iter->y;
+			
+			//Screen Coordinates Transfer Factor
+			int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+			int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+			float scaleW = ((float)screenWidth)/640.0f;
+			float scaleH = ((float)screenHeight)/480.0f;
+			newPoint.x = (int)(newPoint.x * scaleW);
+			newPoint.y = (int)(newPoint.y * scaleH);
+			oldPoint.x = (int)(oldPoint.x * scaleW);
+			oldPoint.y = (int)(oldPoint.y * scaleH);
 
+			// Location Differences
+			long xOffset = newPoint.x - oldPoint.x;
+			long yOffset = newPoint.y - oldPoint.y;
+
+			// Compute Location Movment
+			POINT currentPoint;
+			POINT resultPoint;
+			::GetCursorPos(&currentPoint);
+			resultPoint.x = currentPoint.x + xOffset * 3;
+			resultPoint.y = currentPoint.y + yOffset * 3;
+
+			// Check inbound
+			if(resultPoint.x <= 0)
+				resultPoint.x = 0;
+			if(resultPoint.x >= screenWidth)
+				resultPoint.x = screenWidth;
+			if(resultPoint.y <= 0)
+				resultPoint.y = 0;
+			if(resultPoint.y >= screenHeight)
+				resultPoint.y = screenHeight;
+			
+			SetCursorPos(resultPoint.x, resultPoint.y);
+		}
 
 		// ---- Nose CamShift Tracking Beginning Part ----
 		// Backup Code is stored in file: Backup_Sections.txt
 		// ------ Ending Part ----
-
-
-
-
-
-
-
 		// Save current Frame into lastFrame;
 		grabber->copyImageTo(last_frame);
 		processor.processImage(last_frame);

@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 	std::list<Point> m_History;
 	int m_nHistorySize = 20;	// Max Size of Point History
 	Point goldPoint;			// gold base point of the nose
-	double sigma1 = 0.1;
+	double sigma1 = 0.2;
 	// ---- Depth threshold segmentation	 Declearations ----		
 	Mat odst; Mat& dst = odst;
 
@@ -419,15 +419,18 @@ int main(int argc, char** argv)
 			oldPoint.y = (int)(oldPoint.y * scaleH);
 
 			// Location Differences
+			double ratio = 1;
 			long xOffset = newPoint.x - oldPoint.x;
 			long yOffset = newPoint.y - oldPoint.y;
+			//xOffset = xOffset / ratio;
+			//yOffset = yOffset / ratio;
 
 			// Compute Location Movment
 			POINT currentPoint;
 			POINT resultPoint;
 			::GetCursorPos(&currentPoint);
-			resultPoint.x = currentPoint.x + xOffset * 3;
-			resultPoint.y = currentPoint.y + yOffset * 3;
+			resultPoint.x = currentPoint.x + xOffset * ratio;
+			resultPoint.y = currentPoint.y + yOffset * ratio;
 
 			// Check inbound
 			if(resultPoint.x <= 0)

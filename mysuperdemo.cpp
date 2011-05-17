@@ -75,7 +75,10 @@ Rect checkRect(Rect r, CvSize siz);
 void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
 
 // Calculate the mean
+Point meanPoint(std::list<Point> history);
 
+// Smooth the trajectory by Gaussian Smooth
+std::list<Point> trajGaussianSmooth(std::list<Point> history, double sigma1);
 
 int main(int argc, char** argv)
 {
@@ -115,6 +118,8 @@ int main(int argc, char** argv)
 	// ---- Cursory Tracking based on Nose Tracking Declearations ----
 	std::list<Point> m_History;
 	int m_nHistorySize = 20;	// Max Size of Point History
+	Point goldPoint;			// gold base point of the nose
+	double sigma1 = 0.1;
 	// ---- Depth threshold segmentation	 Declearations ----		
 	Mat odst; Mat& dst = odst;
 
@@ -381,7 +386,12 @@ int main(int argc, char** argv)
 		m_History.push_front(nosePoint);
 		if (m_History.size() > m_nHistorySize)
 			m_History.pop_back();
-		
+
+		m_History = trajGaussianSmooth(m_History, sigma1);
+
+		//if (m_History.size() == 1)
+		//	goldPoint = nosePoint;
+
 		if (m_History.size() >= 2){
 			// New Point
 			Point newPoint;
@@ -389,13 +399,14 @@ int main(int argc, char** argv)
 			newPoint.y = m_History.front().y;
 			
 			// Old Point
-			POINT oldPoint;
-			std::list<Point>::iterator iter = m_History.begin();
-			iter++;
+			Point oldPoint;
+			oldPoint = meanPoint(m_History);
+			//std::list<Point>::iterator iter = m_History.begin();
+			//iter++;
 			//oldPoint.x = iter->X;
 			//oldPoint.y = iter->Y;
-			oldPoint.x = iter->x;
-			oldPoint.y = iter->y;
+			//oldPoint.x = iter->x;
+			//oldPoint.y = iter->y;
 			
 			//Screen Coordinates Transfer Factor
 			int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -732,3 +743,49 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	imshow("ROI", outFrameROI);
 	//imshow("thresholdSeg", dst);
 }
+
+Point meanPoint(std::list<Point> history){
+	Point acc;
+	acc.x = 0; acc.y = 0;
+	for (std::list<Point>::iterator iter = history.begin(); iter != history.end(); ++iter){
+		acc.x = iter->x +acc.x;
+		acc.y = iter->y + acc.y;
+	}
+
+	acc.x = acc.x / history.size();
+	acc.y = acc.y / history.size();
+	return acc;
+}
+		
+std::list<Point> trajGaussianSmooth(std::list<Point> history, double sigma1){
+	CvMat* X = cvCreateMat(history.size(), 1, CV_32FC1);
+	CvMat* Y = cvCreateMat(history.size(), 1, CV_32FC1);
+	CvMat* smoothX = cvCreateMat(history.size(), 1, CV_32FC1);;
+	CvMat* smoothY = cvCreateMat(history.size(), 1, CV_32FC1);;
+	int count = 0;
+	Point buff;
+	std::list<Point> smoothHistory;
+	
+	if (history.size() <= 5)
+		return history;
+	else{
+		for(std::list<Point>::iterator iter = history.begin(); iter != history.end(); ++iter, ++count){
+			cvSetReal1D(X, count, iter->x);
+			cvSetReal1D(Y, count, iter->y);
+		}
+
+		cvSmooth(X, smoothX, CV_GAUSSIAN, 3, 0, sigma1);
+		cvSmooth(Y, smoothY, CV_GAUSSIAN, 3, 0, sigma1);
+		
+		for (--count; count >= 0; --count){
+			Point temp(count, 0);
+			buff.x = cvGetReal1D(smoothX, count);
+			buff.y = cvGetReal1D(smoothY, count);
+			smoothHistory.push_front(buff);
+		}
+		return smoothHistory;
+	}
+}
+
+
+	

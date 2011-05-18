@@ -17,6 +17,8 @@
 #include "GuiController.h"
 #include "ObjectDetector.h"
 
+#include "BlobResult.h"
+
 #include <QApplication>
 #include <QMetaType>
 
@@ -745,6 +747,19 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	
 	imshow("ROI", outFrameROI);
 	//imshow("thresholdSeg", dst);
+
+	// For debug of cvblobslib
+	// Display the color image	
+	//IplImage SaveImg = current_frame.rgb();
+	//IplImage* pSaveImg = &outFrame;
+
+	Mat* pOutFrame = &outFrame;
+	imshow("faceRIO", maskROI);
+	bool iswrite;
+	const int nchannel = 1;
+	vector<Rect> faces;
+	iswrite = imwrite("faceROI.png", maskROI);
+	//iswrite = cvSaveImage("faceROI.jpeg", pOutFrame, &nchannel);
 }
 
 Point meanPoint(std::list<Point> history){

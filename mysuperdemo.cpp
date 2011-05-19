@@ -18,6 +18,7 @@
 #include "ObjectDetector.h"
 
 #include "BlobResult.h"
+#include "blobs.h"
 
 #include <QApplication>
 #include <QMetaType>
@@ -755,10 +756,16 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	bool iswrite;
 	const int nchannel = 1;
 	vector<Rect> faces;
-	iswrite = imwrite("faceROI.png", maskROI);
+	iswrite = imwrite("faceROI.png", outFrameROI);
 	//iswrite = cvSaveImage("faceROI.jpeg", pOutFrame, &nchannel);
 
 	// ---- blob segmentation on maskROI by using cvblobslib ----
+	// ---		Third Trial	---
+	visualizeBlobs("faceROI.png", "faceRIO");
+
+
+
+
 	// ---		First Trial Not Successful		---
 	//Mat maskROIThr=cvCreateMat(maskROI.rows, maskROI.cols, CV_8UC1);	
 	//maskROIThr = maskROI;
@@ -767,30 +774,32 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	//cvThreshold(pImgMaskROIThr, pImgMaskROIThr, 0.1, 255, CV_THRESH_BINARY_INV);
 
 	// ---		Second Trial	---
-	IplImage* original = cvLoadImage("faceROI.png", 0);
-	IplImage* originalThr = cvCreateImage(cvGetSize(original), IPL_DEPTH_8U, 1);
-	IplImage* displayBiggestBlob = cvCreateImage(cvGetSize(original), IPL_DEPTH_8U, 1);
-	CBlobResult blobs;
-	CBlob biggestBlob;
-	//IplImage source = maskROIThr;	IplImage* pSource = &source;
-	blobs =  CBlobResult( originalThr, NULL, 1 );;
-	blobs.GetNthBlob(CBlobGetArea(), 0, biggestBlob);
-	biggestBlob.FillBlob(displayBiggestBlob, CV_RGB(255, 0, 0));
+	//IplImage* original = cvLoadImage("faceROI.png", 0);
+	//IplImage* originalThr = cvCreateImage(cvGetSize(original), IPL_DEPTH_8U, 1);
+	//IplImage* displayBiggestBlob = cvCreateImage(cvGetSize(original), IPL_DEPTH_8U, 1);
+	//CBlobResult blobs;
+	//CBlob biggestBlob;
+	////IplImage source = maskROIThr;	IplImage* pSource = &source;
+	//blobs =  CBlobResult( originalThr, NULL, 1 );;
+	//blobs.GetNthBlob(CBlobGetArea(), 0, biggestBlob);
+	//biggestBlob.FillBlob(displayBiggestBlob, CV_RGB(255, 0, 0));
 
-	// Drawing the eclipse and Rect on the blob
-	Mat mat(displayBiggestBlob);
+	//// Drawing the eclipse and Rect on the blob
+	//Mat mat(displayBiggestBlob);
 
-	cv::RotatedRect blobEllipseContour;
-	cv::Rect blobRectContour;
-	//RotatedRect blobEllipseContour;
-	blobEllipseContour = biggestBlob.GetEllipse();
-	blobRectContour = biggestBlob.GetBoundingBox();
-	//cv::ellipse(
-	cv::ellipse(mat, blobEllipseContour, cv::Scalar(0,255, 0), 3, CV_AA);
-	cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
-	//cv::ellipse(mat, blobEllipseContour);
+	//cv::RotatedRect blobEllipseContour;
+	//cv::Rect blobRectContour;
+	////RotatedRect blobEllipseContour;
+	//blobEllipseContour = biggestBlob.GetEllipse();
+	//blobRectContour = biggestBlob.GetBoundingBox();
+	////cv::ellipse(
+	//cv::ellipse(mat, blobEllipseContour, cv::Scalar(0,255, 0), 3, CV_AA);
+	//cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
+	////cv::ellipse(mat, blobEllipseContour);
+	//
+	//cv::imshow("faceRIO", mat);
+
 	
-	cv::imshow("faceRIO", mat);
 
 }
 

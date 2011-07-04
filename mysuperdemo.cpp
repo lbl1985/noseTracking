@@ -269,8 +269,8 @@ int main(int argc, char** argv)
 		if (!faces.empty())	
 		//if (false)	
 		{
-			Detection = false;
-			isTracking = true;
+			Detection = true;
+			isTracking = false;
 
 			// Face Tracking Starts here
 			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)

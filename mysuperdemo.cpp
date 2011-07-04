@@ -59,6 +59,8 @@ int trackObjectNose = 0;
 Point originNose;
 Rect selectionNose;
 int vminNose = 10, vmaxNose = 256, sminNose = 92;
+// Nose movement maximum distance.
+double diffThreshold = 100;
 
 // Function prototype for detecting and drawing an object from an image
 vector<Rect> detectAndDraw( Mat& img,
@@ -70,6 +72,9 @@ void depthAndDraw(Mat& img, vector<Rect> faces);
 // Nose Tracking region selection
 Rect noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame);
 Point noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame, bool isPoint);
+
+// Nose Location History Function
+
 
 // Force rect in image bound
 Rect checkRect(Rect r, CvSize siz);
@@ -393,8 +398,32 @@ int main(int argc, char** argv)
 		}
 		
 		// Cursor Tracking Based on Nost Tracking
+		// If the movement is too large, ignore the current point, set the location as the one before. (for now).
+		// Later, we need to set the location by using Kalman Filter
+
+		//NoseLocations(m_History, nosePoint);
+		if (m_History.size() > 0 )
+		{
+			Point tempPoint;
+			tempPoint.x = m_History.front().x;
+			tempPoint.y = m_History.front().y;
+
+			double diff, xdiff, ydiff;
+			xdiff = tempPoint.x - nosePoint.x;
+			ydiff = tempPoint.y - nosePoint.y;
+			diff = sqrt(xdiff * xdiff + ydiff * ydiff);
+			printf("diff is: %f \n", diff);
+			if (diff > diffThreshold)
+				// if the movement distance is larget than the threshold
+				// use the location before.
+				m_History.push_front(m_History.front());
+			else
+				// push 
+				m_History.push_front(nosePoint);
+		}
+		else
+			m_History.push_front(nosePoint);
 		
-		m_History.push_front(nosePoint);
 		if (m_History.size() > m_nHistorySize)
 			m_History.pop_back();
 

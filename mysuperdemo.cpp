@@ -469,8 +469,8 @@ int main(int argc, char** argv)
 			POINT currentPoint;
 			POINT resultPoint;
 			::GetCursorPos(&currentPoint);
-			resultPoint.x = currentPoint.x + xOffset * ratio;
-			resultPoint.y = currentPoint.y + yOffset * ratio;
+			resultPoint.x = currentPoint.x - xOffset * ratio;
+			resultPoint.y = currentPoint.y - yOffset * ratio;
 
 			// Check inbound
 			if(resultPoint.x <= 0)

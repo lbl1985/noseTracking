@@ -378,7 +378,9 @@ cvCreateSeq( int seq_flags, int header_size, int elem_size, CvMemStorage * stora
     seq->header_size = header_size;
     seq->flags = (seq_flags & ~CV_MAGIC_MASK) | CV_SEQ_MAGIC_VAL;
     {
-        int elemtype = CV_MAT_TYPE(seq_flags);
+        // Only for cvblobs project 
+		int elemtype = CV_MAT_TYPE(seq_flags);
+		//int elemtype = 0;
         int typesize = CV_ELEM_SIZE(elemtype);
 
         if( elemtype != CV_SEQ_ELTYPE_GENERIC && elemtype != CV_USRTYPE1 &&

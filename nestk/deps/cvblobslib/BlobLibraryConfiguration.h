@@ -19,4 +19,4 @@ MODIFICATIONS (Modification, Author, Date):
 //#define BLOB_OBJECT_FACTORY
 
 //! Show/not show blob access errors
-#define _SHOW_ERRORS
+//#define _SHOW_ERRORS

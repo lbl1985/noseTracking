@@ -101,6 +101,7 @@ int main(int argc, char** argv)
 	Rect trackWindow;
 	RotatedRect trackBox;
 	int hsize = 16;
+	int faceDetectionCount = 0;
 	float hranges[] = {0,180};
     const float* phranges = hranges;
 	Mat hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
@@ -266,12 +267,19 @@ int main(int argc, char** argv)
 
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
+		
 		if (!faces.empty())	
 		//if (false)	
 		{
-			Detection = true;
-			isTracking = false;
-
+			if(faceDetectionCount < 3)
+			{
+				Detection = false;	isTracking = true;	faceDetectionCount++;
+			}
+			else
+			{
+				faceDetectionCount = 0;
+				Detection = true;	isTracking = false;
+			}
 			// Face Tracking Starts here
 			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
 			{

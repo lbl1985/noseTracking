@@ -854,8 +854,7 @@ Point meanPoint(std::list<Point> history){
 	acc.x = acc.x / history.size();
 	acc.y = acc.y / history.size();
 	return acc;
-}
-		
+}		
 std::list<Point> trajGaussianSmooth(std::list<Point> history, double sigma1){
 	CvMat* X = cvCreateMat(history.size(), 1, CV_32FC1);
 	CvMat* Y = cvCreateMat(history.size(), 1, CV_32FC1);

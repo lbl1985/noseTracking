@@ -427,10 +427,20 @@ int main(int argc, char** argv)
 		if (m_History.size() > m_nHistorySize)
 			m_History.pop_back();
 
+		// Initial nose Point as fixed reference point
+		if (m_History.size() == 1)
+		{
+			Point initPoint;
+			initPoint.x = m_History.front().x;
+			initPoint.y = m_History.front().y;
+		}
+		
+
 		m_History = trajGaussianSmooth(m_History, sigma1);
 
 		//if (m_History.size() == 1)
 		//	goldPoint = nosePoint;
+
 
 		if (m_History.size() >= 2){
 			// New Point
@@ -440,13 +450,9 @@ int main(int argc, char** argv)
 			
 			// Old Point
 			Point oldPoint;
-			oldPoint = meanPoint(m_History);
-			//std::list<Point>::iterator iter = m_History.begin();
-			//iter++;
-			//oldPoint.x = iter->X;
-			//oldPoint.y = iter->Y;
-			//oldPoint.x = iter->x;
-			//oldPoint.y = iter->y;
+			oldPoint = initPoint;
+			//oldPoint = meanPoint(m_History);
+			
 			
 			//Screen Coordinates Transfer Factor
 			int screenWidth = GetSystemMetrics(SM_CXSCREEN);

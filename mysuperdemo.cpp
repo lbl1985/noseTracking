@@ -274,18 +274,20 @@ int main(int argc, char** argv)
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
 		
-		if (!faces.empty())	
-		//if (false)	
+		if(faceDetectionCount < 3)
 		{
-			if(faceDetectionCount < 3)
-			{
-				Detection = false;	isTracking = true;	faceDetectionCount++;
-			}
-			else
-			{
-				faceDetectionCount = 0;
-				Detection = true;	isTracking = false;
-			}
+			Detection = false;	isTracking = true;	faceDetectionCount++;
+		}
+		else
+		{
+			faceDetectionCount = 0;
+			Detection = true;	isTracking = false;	trackObject = 0;
+		}
+
+
+		if (!faces.empty())		
+		{
+			
 			// Face Tracking Starts here
 			for( vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++)
 			{

@@ -274,7 +274,7 @@ int main(int argc, char** argv)
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
 		
-		if(faceDetectionCount < 3)
+		if(faceDetectionCount < 20)
 		{
 			Detection = false;	isTracking = true;	faceDetectionCount++;
 		}

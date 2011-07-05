@@ -849,7 +849,7 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
 	//cv::ellipse(mat, blobEllipseContour);
 	
-	cv::imshow("faceROI", mat);
+	cv::imshow("faceRIO", mat);
 
 	
 

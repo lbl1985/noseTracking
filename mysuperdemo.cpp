@@ -194,9 +194,9 @@ int main(int argc, char** argv)
 	// ---- OpenCV windows ----
 	if(!QT)
 	{
-		namedWindow("color");
+		//namedWindow("color");
 		//namedWindow("depth");
-		namedWindow("depth_as_color");
+		//namedWindow("depth_as_color");
 		//namedWindow("result");
 		//namedWindow("ROI");
 		//namedWindow("depthDraw");
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 		// Compute color encoded depth.
 		cv::Mat3b depth_as_color;
 		compute_color_encoded_depth(current_frame.depth(), depth_as_color);
-		imshow("depth_as_color", depth_as_color);
+		//imshow("depth_as_color", depth_as_color);
 
 		if (Detection)
 		{
@@ -611,7 +611,7 @@ vector<Rect> detectAndDraw( Mat& img,
 		}
 
 	}  
-	cv::imshow( "result", img );   	
+	//cv::imshow( "result", img );   	
 	return(faces);
 }
 
@@ -645,7 +645,7 @@ void depthAndDraw(Mat& img, std::vector<Rect> faces)
 		radius = cvRound((r->width + r->height)*0.25*scale);
 		circle( img, center, radius, color, 3, 8, 0 );
 
-		cv::imshow("depthDraw", img);
+		//cv::imshow("depthDraw", img);
 	}  
 }
 
@@ -849,7 +849,7 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
 	//cv::ellipse(mat, blobEllipseContour);
 	
-	cv::imshow("faceRIO", mat);
+	cv::imshow("faceROI", mat);
 
 	
 

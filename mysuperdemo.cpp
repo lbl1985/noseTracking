@@ -198,11 +198,11 @@ int main(int argc, char** argv)
 		namedWindow("depth");
 		namedWindow("depth_as_color");
 		namedWindow("result");
-		namedWindow("ROI");
-		namedWindow("depthDraw");
-		namedWindow( "Histogram", 1 );
-		namedWindow( "CamShift Demo", 1 );
-		namedWindow("debug", 1);
+		//namedWindow("ROI");
+		//namedWindow("depthDraw");
+		//namedWindow( "Histogram", 1 );
+		//namedWindow( "CamShift Demo", 1 );
+		//namedWindow("debug", 1);
 		namedWindow("faceROI", 1);
 		namedWindow("noseROI", 1);
 		namedWindow("thresholdSeg", 1);

@@ -205,7 +205,7 @@ int main(int argc, char** argv)
 		//namedWindow("debug", 1);
 		namedWindow("faceROI", 1);
 		namedWindow("noseROI", 1);
-		namedWindow("thresholdSeg", 1);
+		//namedWindow("thresholdSeg", 1);
 		//setMouseCallback( "CamShift Demo", onMouse, 0 );
 		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
 		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
@@ -494,7 +494,7 @@ int main(int argc, char** argv)
 			if(resultPoint.y >= screenHeight)
 				resultPoint.y = screenHeight;
 			
-			SetCursorPos(resultPoint.x, resultPoint.y);
+			//SetCursorPos(resultPoint.x, resultPoint.y);
 		}
 
 		// ---- Nose CamShift Tracking Beginning Part ----

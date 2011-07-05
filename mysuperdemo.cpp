@@ -115,6 +115,7 @@ int main(int argc, char** argv)
 	Rect faceTrackWindow;
 	Rect nose;
 	Point nosePoint;
+	Point initPoint;  // First detected nose location as fixing original reference point
 	bool isPoint = true;
 	
 	Rect trackWindowNose;
@@ -396,14 +397,17 @@ int main(int argc, char** argv)
 				// Point as output
 				nosePoint = noseRegion(faceTrackWindow, &current_frame, isPoint);
 		}
+
 		
-		// Cursor Tracking Based on Nost Tracking
+		
+		// Cursor Tracking Based on Nose Tracking
 		// If the movement is too large, ignore the current point, set the location as the one before. (for now).
 		// Later, we need to set the location by using Kalman Filter
 
 		//NoseLocations(m_History, nosePoint);
 		if (m_History.size() > 0 )
-		{
+		{		
+			
 			Point tempPoint;
 			tempPoint.x = m_History.front().x;
 			tempPoint.y = m_History.front().y;
@@ -424,16 +428,18 @@ int main(int argc, char** argv)
 		else
 			m_History.push_front(nosePoint);
 		
-		if (m_History.size() > m_nHistorySize)
-			m_History.pop_back();
-
 		// Initial nose Point as fixed reference point
 		if (m_History.size() == 1)
-		{
-			Point initPoint;
+		{			
 			initPoint.x = m_History.front().x;
 			initPoint.y = m_History.front().y;
 		}
+
+
+		if (m_History.size() > m_nHistorySize)
+			m_History.pop_back();
+
+		
 		
 
 		m_History = trajGaussianSmooth(m_History, sigma1);

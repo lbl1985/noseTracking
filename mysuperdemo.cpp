@@ -195,21 +195,21 @@ int main(int argc, char** argv)
 	if(!QT)
 	{
 		namedWindow("color");
-		namedWindow("depth");
+		//namedWindow("depth");
 		namedWindow("depth_as_color");
-		namedWindow("result");
+		//namedWindow("result");
 		//namedWindow("ROI");
 		//namedWindow("depthDraw");
 		//namedWindow( "Histogram", 1 );
 		//namedWindow( "CamShift Demo", 1 );
-		//namedWindow("debug", 1);
-		namedWindow("faceROI", 1);
-		namedWindow("noseROI", 1);
+		namedWindow("debug", 1);
+		//namedWindow("faceROI", 1);
+		//namedWindow("noseROI", 1);
 		//namedWindow("thresholdSeg", 1);
 		//setMouseCallback( "CamShift Demo", onMouse, 0 );
-		createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
-		createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
-		createTrackbar( "Smin", "CamShift Demo", &smin, 256, 0 );
+		//createTrackbar( "Vmin", "CamShift Demo", &vmin, 256, 0 );
+		//createTrackbar( "Vmax", "CamShift Demo", &vmax, 256, 0 );
+		//createTrackbar( "Smin", "CamShift Demo", &smin, 256, 0 );
 	}
 
 	
@@ -241,12 +241,12 @@ int main(int argc, char** argv)
 		IplImage SaveImg = current_frame.rgb();
 		IplImage* pSaveImg = &SaveImg;
 
-		imshow("color", pSaveImg);
+		//imshow("color", pSaveImg);
 		bool iswrite;
 		const int nchannel = 3;
 		vector<Rect> faces;
-		iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
-		if(!iswrite) printf("Could not save\n");
+		//iswrite = cvSaveImage("test.jpeg", pSaveImg, &nchannel);		
+		//if(!iswrite) printf("Could not save\n");
 		cvWriteFrame(writer, pSaveImg);
 		
 		// ---- Facial Detection Section ----
@@ -259,7 +259,7 @@ int main(int argc, char** argv)
 
 
 		// Show the depth image as normalized gray scale
-		imshow_normalized("depth", current_frame.depth());
+		//imshow_normalized("depth", current_frame.depth());
 
 		// Compute color encoded depth.
 		cv::Mat3b depth_as_color;
@@ -374,8 +374,8 @@ int main(int argc, char** argv)
 			if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
 				thresholdSegmentation(faceTrackWindow, &current_frame, dst);
 
-			imshow( "CamShift Demo", image );
-			imshow( "Histogram", histimg );
+			//imshow( "CamShift Demo", image );
+			//imshow( "Histogram", histimg );
 		}
 		
 		

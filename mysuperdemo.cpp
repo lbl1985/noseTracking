@@ -18,6 +18,8 @@
 #include "ObjectDetector.h"
 
 #include "BlobResult.h"
+#include "state.h"
+#include "observetemplate.h"
 //#include "blobs.h"
 
 #include <QApplication>
@@ -104,12 +106,38 @@ int main(int argc, char** argv)
 
 	// ---- Face Tracking Declearations ----
 	Rect trackWindow;
-	RotatedRect trackBox;
+	RotatedRect trackBox;	
 	int hsize = 16;
 	int faceDetectionCount = 0;
 	float hranges[] = {0,180};
     const float* phranges = hranges;
 	Mat hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
+
+	// Tracking Method, c -- "Cam Shift", p -- "Particle Filter"
+	char trackPattern = 'c';
+	// particle fitler related varables
+	CvRect region;
+	/****************************** Particle Filter Global *****************************/
+
+	int num_particles = 100;
+	// state.h
+	extern int num_states;
+	// observation.h
+	CvSize featsize = cvSize(24,24);
+
+	bool arg_export = false;
+	char export_filename[2048];
+	const char* export_format = "%s_%04d.png";
+
+	float std_x = 3.0;
+	float std_y = 3.0;
+	float std_w = 2.0;
+	float std_h = 2.0;
+	float std_r = 1.0;
+
+	// If particle filter, then initialize 
+	if (trackPattern == 'p')
+		cvParticleObserveInitialize( featsize );
 
 	// ---- Nose Tracking Declearations ----
 	Rect faceTrackWindow;
@@ -304,77 +332,164 @@ int main(int argc, char** argv)
 
 		if (isTracking)
 		{
-			image = current_frame.rgb();
-			cv::Mat& rimage = image;
-			cvtColor(rimage, hsv, CV_BGR2HSV);
-			imshow("debug", image);
-
-			if (trackObject)
-			{
-				int _vmin = vmin, _vmax = vmax;
-
-				inRange(hsv, Scalar(0, smin, MIN(_vmin,_vmax)),
-					Scalar(180, 256, MAX(_vmin, _vmax)), mask);
-				int ch[] = {0, 0};
-				hue.create(hsv.size(), hsv.depth());
-				mixChannels(&hsv, 1, &hue, 1, ch, 1);
-
-				imshow( "debug", image );
-
-				if( trackObject < 0 )
-				{
-					Mat roi(hue, selection), maskroi(mask, selection);
-					calcHist(&roi, 1, 0, maskroi, hist, 1, &hsize, &phranges);
-					normalize(hist, hist, 0, 255, CV_MINMAX);
-
-					trackWindow = selection;
-					trackObject = 1;
-
-					histimg = Scalar::all(0);
-					int binW = histimg.cols / hsize;
-					Mat buf(1, hsize, CV_8UC3);
-					for( int i = 0; i < hsize; i++ )
-						buf.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsize), 255, 255);
-					cvtColor(buf, buf, CV_HSV2BGR);
-
-					for( int i = 0; i < hsize; i++ )
-					{
-						int val = saturate_cast<int>(hist.at<float>(i)*histimg.rows/255);
-						rectangle( histimg, Point(i*binW,histimg.rows),
-							Point((i+1)*binW,histimg.rows - val),
-							Scalar(buf.at<Vec3b>(i)), -1, 8 );
-					}
-
-					
-				}
-
-				calcBackProject(&hue, 1, 0, hist, backproj, &phranges);
-				backproj &= mask;
-				RotatedRect trackBox = CamShift(backproj, trackWindow,
-					TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));				
-				
-				faceTrackWindow = trackBox.boundingRect();
-				faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
-				
-				imshow( "debug", image );
-
-				if( backprojMode )
-					cvtColor( backproj, image, CV_GRAY2BGR );
-				ellipse( image, trackBox, Scalar(0,0,255), 3, CV_AA );
-
-				imshow( "debug", image );
-			}
 			
+			
+			// configure CamShift or Particle Filter
+			switch (trackPattern){
+				case 'c':
+					{
+						// CamShiftTracking			
+						image = current_frame.rgb();
+						cv::Mat& rimage = image;
+						cvtColor(rimage, hsv, CV_BGR2HSV);
+						imshow("debug", image);
+
+						if (trackObject)
+						{
+							int _vmin = vmin, _vmax = vmax;
+
+							inRange(hsv, Scalar(0, smin, MIN(_vmin,_vmax)),
+								Scalar(180, 256, MAX(_vmin, _vmax)), mask);
+							int ch[] = {0, 0};
+							hue.create(hsv.size(), hsv.depth());
+							mixChannels(&hsv, 1, &hue, 1, ch, 1);
+
+							imshow( "debug", image );
+
+							if( trackObject < 0 )
+							{
+								Mat roi(hue, selection), maskroi(mask, selection);
+								calcHist(&roi, 1, 0, maskroi, hist, 1, &hsize, &phranges);
+								normalize(hist, hist, 0, 255, CV_MINMAX);
+
+								trackWindow = selection;
+								trackObject = 1;
+
+								histimg = Scalar::all(0);
+								int binW = histimg.cols / hsize;
+								Mat buf(1, hsize, CV_8UC3);
+								for( int i = 0; i < hsize; i++ )
+									buf.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./hsize), 255, 255);
+								cvtColor(buf, buf, CV_HSV2BGR);
+
+								for( int i = 0; i < hsize; i++ )
+								{
+									int val = saturate_cast<int>(hist.at<float>(i)*histimg.rows/255);
+									rectangle( histimg, Point(i*binW,histimg.rows),
+										Point((i+1)*binW,histimg.rows - val),
+										Scalar(buf.at<Vec3b>(i)), -1, 8 );
+								}
+
+
+							}
+
+							calcBackProject(&hue, 1, 0, hist, backproj, &phranges);
+							backproj &= mask;
+							RotatedRect trackBox = CamShift(backproj, trackWindow,
+								TermCriteria( CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10, 1 ));				
+
+							faceTrackWindow = trackBox.boundingRect();
+							faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
+
+							imshow( "debug", image );
+
+							if( backprojMode )
+								cvtColor( backproj, image, CV_GRAY2BGR );
+							ellipse( image, trackBox, Scalar(0,0,255), 3, CV_AA );
+
+							imshow( "debug", image );
+						}
+						// Initialize CamShift Tracker
+						if( !trackObject && selection.width > 0 && selection.height > 0 )
+						{
+							Mat roi(image, selection);
+							bitwise_not(roi, roi);
+							trackObject = -1;
+						}
+						// Threshold Segmentation 
+						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
+							thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+					}
+				case 'p':
+					{
+						// Particle Filter
+						IplImage frameArray = current_frame.rgb();
+						IplImage *frame = &frameArray;
+						imshow("debug", frame);						
+						region = faces.front();
+
+						// configure particle filter
+						bool logprob = true;
+						CvParticle *particle = cvCreateParticle( num_states, num_particles, logprob );
+						CvParticleState std = cvParticleState (
+							std_x,
+							std_y,
+							std_w,
+							std_h,
+							std_r
+						);
+						cvParticleStateConfig( particle, cvGetSize(frame), std );
+
+						if( !trackObject && selection.width > 0 && selection.height > 0 )
+						{
+							CvParticleState s;
+							CvParticle *init_particle;
+							init_particle = cvCreateParticle( num_states, 1 );
+							CvRect32f region32f = cvRect32fFromRect( region );
+							CvBox32f box = cvBox32fFromRect32f( region32f ); // centerize
+							s = cvParticleState( box.cx, box.cy, box.width, box.height, 0.0 );
+							cvParticleStateSet( init_particle, 0, s );
+							cvParticleInit( particle, init_particle );
+							cvReleaseParticle( &init_particle );
+
+							// template
+							IplImage* reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
+							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
+							cvCropImageROI( frame, tmp, region32f );
+							cvResize( tmp, reference );
+							cvReleaseImage( &tmp );
+						}
+					}
+			}
+
+				
+			// Particle Filter Tracking
+
+			
+			
+			// Initialize the tracker
 			if( !trackObject && selection.width > 0 && selection.height > 0 )
 			{
-				Mat roi(image, selection);
-				bitwise_not(roi, roi);
-				trackObject = -1;
+				switch (trackPattern){
+					case 'c':
+						{				
+							Mat roi(image, selection);
+							bitwise_not(roi, roi);
+							trackObject = -1;
+						}
+					case 'p':
+						{
+							CvParticleState s;
+							CvParticle *init_particle;
+							init_particle = cvCreateParticle( num_states, 1 );
+							CvRect32f region32f = cvRect32fFromRect( region );
+							CvBox32f box = cvBox32fFromRect32f( region32f ); // centerize
+							s = cvParticleState( box.cx, box.cy, box.width, box.height, 0.0 );
+							cvParticleStateSet( init_particle, 0, s );
+							cvParticleInit( particle, init_particle );
+							cvReleaseParticle( &init_particle );
+
+							// template
+							IplImage* reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
+							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
+							cvCropImageROI( frame, tmp, region32f );
+							cvResize( tmp, reference );
+							cvReleaseImage( &tmp );
+						}
+
 			}
 
-			// Threshold Segmentation 
-			if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
-				thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+			
 
 			//imshow( "CamShift Demo", image );
 			//imshow( "Histogram", histimg );

@@ -430,6 +430,18 @@ int main(int argc, char** argv)
 		else
 			m_History.push_front(nosePoint);
 		
+		// Visualize nose by detection only v.s. movement judgement
+		// Showing Detection Nose
+		cv::putText(image,
+			cv::format("noseDet"),
+			nosePoint, 0, 0.5, Scalar(255,0,0,255));
+		cv::putText(image, 
+			cv::format("noseJdg"),
+			m_History.front(), 0, 0.5, Scalar(255, 255, 0, 0));
+		imshow("debug", image);
+
+
+
 		// Initial nose Point as fixed reference point
 		if (m_History.size() == 1)
 		{			
@@ -440,7 +452,7 @@ int main(int argc, char** argv)
 
 		if (m_History.size() > m_nHistorySize)
 			m_History.pop_back();
-
+		
 		
 		
 
@@ -449,7 +461,7 @@ int main(int argc, char** argv)
 		//if (m_History.size() == 1)
 		//	goldPoint = nosePoint;
 
-
+		// Setting Cursory Section
 		if (m_History.size() >= 2){
 			// New Point
 			Point newPoint;
@@ -709,7 +721,7 @@ Point noseRegion(Rect r, ntk::RGBDImage* current_frame, bool isPoint)
 {
 	cv::Mat Depth_normal = current_frame->depth();
 	
-	Point minLoc, maxLoc;
+	Point minLoc, maxLoc, noseAbsolute;
 	double minVal, maxVal, ratio = 5;
 	Rect nose;
 	IplImage noseROI = current_frame->rgb();
@@ -751,12 +763,15 @@ Point noseRegion(Rect r, ntk::RGBDImage* current_frame, bool isPoint)
 	nose.height = r.height / ratio;
 	nose.x = minLoc.x + r.x - 1 - nose.width / 2;
 	nose.y = minLoc.y + r.y - 1 - nose.width / 2;
-
+	
+	noseAbsolute.x = nose.x;
+	noseAbsolute.y = nose.y;
 	//smallImgROIColor = img(*r);				
 	/*noseROI = current_frame->rgb();
 	cvSetImageROI(&noseROI, nose);
 	imshow("noseROI", &noseROI);*/
-	return(minLoc);
+	//return(minLoc);
+	return(noseAbsolute);
 }
 
 Rect checkRect(Rect r, CvSize siz){

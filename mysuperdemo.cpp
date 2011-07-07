@@ -490,11 +490,10 @@ int main(int argc, char** argv)
 							// Resampling
 							cvParticleResample( particle );
 							// Interface Compatible
-							faceTrackWindow.x = maxs.x; faceTrackWindow.y = maxs.y;
-							faceTrackWindow.width = maxs.width; faceTrackWindow.height = maxs.width; 
+							faceTrackWindow.x = floor(maxs.x - maxs.width/2); faceTrackWindow.y = floor(maxs.y - maxs.height/2);
+							faceTrackWindow.width = maxs.width; faceTrackWindow.height = maxs.height; 
 							faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
 							selection = faceTrackWindow;
-
 						}
 
 						if( !trackObject && selection.width > 0 && selection.height > 0 )

@@ -433,28 +433,6 @@ int main(int argc, char** argv)
 						);
 						cvParticleStateConfig( particle, cvGetSize(frame), std );
 
-						if( !trackObject && selection.width > 0 && selection.height > 0 )
-						{
-							CvParticleState s;
-							CvParticle *init_particle;
-							init_particle = cvCreateParticle( num_states, 1 );
-							CvRect32f region32f = cvRect32fFromRect( region );
-							CvBox32f box = cvBox32fFromRect32f( region32f ); // centerize
-							s = cvParticleState( box.cx, box.cy, box.width, box.height, 0.0 );
-							cvParticleStateSet( init_particle, 0, s );
-							cvParticleInit( particle, init_particle );
-							cvReleaseParticle( &init_particle );
-
-							// template
-							reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
-							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
-							cvCropImageROI( frame, tmp, region32f );
-							cvResize( tmp, reference );
-							cvReleaseImage( &tmp );
-							// Initialization Flag
-							trackObject = -1;
-						}
-
 						if( trackObject < 0 )
 						{
 							// Draw new particles
@@ -492,6 +470,29 @@ int main(int argc, char** argv)
 							faceTrackWindow.width = maxs.width; faceTrackWindow.height = maxs.width; 
 							faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
 						}
+
+						if( !trackObject && selection.width > 0 && selection.height > 0 )
+						{
+							CvParticleState s;
+							CvParticle *init_particle;
+							init_particle = cvCreateParticle( num_states, 1 );
+							CvRect32f region32f = cvRect32fFromRect( region );
+							CvBox32f box = cvBox32fFromRect32f( region32f ); // centerize
+							s = cvParticleState( box.cx, box.cy, box.width, box.height, 0.0 );
+							cvParticleStateSet( init_particle, 0, s );
+							cvParticleInit( particle, init_particle );
+							cvReleaseParticle( &init_particle );
+
+							// template
+							reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
+							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
+							cvCropImageROI( frame, tmp, region32f );
+							cvResize( tmp, reference );
+							cvReleaseImage( &tmp );
+							// Initialization Flag
+							trackObject = -1;
+						}
+						
 						// Threshold Segmentation 
 						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
 							thresholdSegmentation(faceTrackWindow, &current_frame, dst);

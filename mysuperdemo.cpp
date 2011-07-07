@@ -142,11 +142,11 @@ int main(int argc, char** argv)
 	char export_filename[2048];
 	const char* export_format = "%s_%04d.png";
 
-	float std_x = 20.0;
-	float std_y = 20.0;
-	float std_w = 9.0;
-	float std_h = 9.0;
-	float std_r = 20.0;
+	float std_x = 10.0;
+	float std_y = 10.0;
+	float std_w = 6.0;
+	float std_h = 6.0;
+	float std_r = 5.0;
 
 	// If particle filter, then initialize 
 	if (trackPattern == 'p')
@@ -507,7 +507,7 @@ int main(int argc, char** argv)
 								//region.width = r->width; region.height = r->height;	
 								// tracking nose
 								nosePoint = noseRegion(*r, &current_frame, isPoint);
-								double noseWidth = 10; // only half of the desired width
+								double noseWidth = 50; // only half of the desired width
 								region.x = nosePoint.x - noseWidth;
 								region.y = nosePoint.y - noseWidth;
 								region.width = 2 * noseWidth;

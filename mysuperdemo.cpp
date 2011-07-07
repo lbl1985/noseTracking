@@ -625,7 +625,7 @@ int main(int argc, char** argv)
 		// Need to set this initial point after cooldown/reappear detection
 		if (m_History.size() == 15)
 		{			
-			initPoint = meanPoint(m_History)
+			initPoint = meanPoint(m_History);
 		}
 
 		//if (m_History.size() == 1)

@@ -114,9 +114,11 @@ int main(int argc, char** argv)
 	Mat hsv, hue, mask, hist, histimg = Mat::zeros(200, 320, CV_8UC3), backproj;
 
 	// Tracking Method, c -- "Cam Shift", p -- "Particle Filter"
-	char trackPattern = 'c';
+	//char trackPattern = 'c';
+	char trackPattern = 'p';
 	// particle fitler related varables
 	CvRect region;
+	IplImage* reference;
 	/****************************** Particle Filter Global *****************************/
 
 	int num_particles = 100;
@@ -302,7 +304,7 @@ int main(int argc, char** argv)
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
 		
-		if(faceDetectionCount < 20)
+		if(faceDetectionCount < 10000)
 		{
 			Detection = false;	isTracking = true;	faceDetectionCount++;
 		}
@@ -409,6 +411,7 @@ int main(int argc, char** argv)
 						// Threshold Segmentation 
 						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
 							thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+						break;
 					}
 				case 'p':
 					{
@@ -443,56 +446,58 @@ int main(int argc, char** argv)
 							cvReleaseParticle( &init_particle );
 
 							// template
-							IplImage* reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
+							reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
 							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
 							cvCropImageROI( frame, tmp, region32f );
 							cvResize( tmp, reference );
 							cvReleaseImage( &tmp );
-						}
-					}
-			}
-
-				
-			// Particle Filter Tracking
-
-			
-			
-			// Initialize the tracker
-			if( !trackObject && selection.width > 0 && selection.height > 0 )
-			{
-				switch (trackPattern){
-					case 'c':
-						{				
-							Mat roi(image, selection);
-							bitwise_not(roi, roi);
+							// Initialization Flag
 							trackObject = -1;
 						}
-					case 'p':
+
+						if( trackObject < 0 )
 						{
-							CvParticleState s;
-							CvParticle *init_particle;
-							init_particle = cvCreateParticle( num_states, 1 );
-							CvRect32f region32f = cvRect32fFromRect( region );
-							CvBox32f box = cvBox32fFromRect32f( region32f ); // centerize
-							s = cvParticleState( box.cx, box.cy, box.width, box.height, 0.0 );
-							cvParticleStateSet( init_particle, 0, s );
-							cvParticleInit( particle, init_particle );
-							cvReleaseParticle( &init_particle );
+							// Draw new particles
+							cvParticleTransition( particle );
+							// Measurements
+							cvParticleObserveMeasure( particle, frame, reference );
 
-							// template
-							IplImage* reference = cvCreateImage( featsize, frame->depth, frame->nChannels );
-							IplImage* tmp = cvCreateImage( cvSize(region.width,region.height), frame->depth, frame->nChannels );
-							cvCropImageROI( frame, tmp, region32f );
-							cvResize( tmp, reference );
-							cvReleaseImage( &tmp );
+							// Draw all particles
+							for( int i = 0; i < particle->num_particles; i++ )
+							{
+								CvParticleState s = cvParticleStateGet( particle, i );
+								cvParticleStateDisplay( s, frame, CV_RGB(0,0,255) );
+							}
+							// Draw most probable particle
+							//printf( "Most probable particle's state\n" );
+							int maxp_id = cvParticleGetMax( particle );
+							CvParticleState maxs = cvParticleStateGet( particle, maxp_id );
+							cvParticleStateDisplay( maxs, frame, CV_RGB(255,0,0) );
+							///cvParticleStatePrint( maxs );
+					        
+							// Save pictures
+							//if( arg_export ) {
+							//	sprintf( export_filename, export_format, vid_file, frame_num );
+							//	printf( "Export: %s\n", export_filename ); fflush( stdout );
+							//	cvSaveImage( export_filename, frame );
+							//}
+							cvShowImage( "debug", frame );
+
+							// Normalize
+							cvParticleNormalize( particle);
+							// Resampling
+							cvParticleResample( particle );
+							// Interface Compatible
+							faceTrackWindow.x = maxs.x; faceTrackWindow.y = maxs.y;
+							faceTrackWindow.width = maxs.width; faceTrackWindow.height = maxs.width; 
+							faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
 						}
-
+						// Threshold Segmentation 
+						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
+							thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+						break;
+					}
 			}
-
-			
-
-			//imshow( "CamShift Demo", image );
-			//imshow( "Histogram", histimg );
 		}
 		
 		

@@ -502,8 +502,16 @@ int main(int argc, char** argv)
 							if (!faces.empty())
 							{
 								vector<Rect>::const_iterator r = faces.begin();
-								region.x = r->x; region.y = r->y; 
-								region.width = r->width; region.height = r->height;	
+								// tracking face
+								//region.x = r->x; region.y = r->y; 
+								//region.width = r->width; region.height = r->height;	
+								// tracking nose
+								nosePoint = noseRegion(*r, &current_frame, isPoint);
+								double noseWidth = 10; // only half of the desired width
+								region.x = nosePoint.x - noseWidth;
+								region.y = nosePoint.y - noseWidth;
+								region.width = 2 * noseWidth;
+								region.height = 2 * noseWidth;
 							}
 
 							// configure particle filter

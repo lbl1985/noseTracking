@@ -677,7 +677,7 @@ int main(int argc, char** argv)
 			if(resultPoint.y >= screenHeight)
 				resultPoint.y = screenHeight;
 			
-			//SetCursorPos(resultPoint.x, resultPoint.y);
+			SetCursorPos(resultPoint.x, resultPoint.y);
 		}
 
 		// ---- Nose CamShift Tracking Beginning Part ----

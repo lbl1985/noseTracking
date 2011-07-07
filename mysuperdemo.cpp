@@ -315,7 +315,7 @@ int main(int argc, char** argv)
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
 		
-		if(faceDetectionCount < 25)
+		if(faceDetectionCount < 2500)
 		{
 			if (!faces.empty())
 				Detection = false;	
@@ -495,9 +495,9 @@ int main(int argc, char** argv)
 								// tracking nose
 								nosePoint = noseRegion(*r, &current_frame, isPoint);
 								double noseWidth = 50; 
-								double noseHeight = 30;// only half of the desired width
-								region.x = floor(nosePoint.x - noseWidth/2);
-								region.y = floor(nosePoint.y - noseHeight/2);
+								double noseHeight = 50;// only half of the desired width
+								region.x = floor(nosePoint.x - noseWidth);
+								region.y = floor(nosePoint.y - noseHeight);
 								region.width = 2 * noseWidth;
 								region.height = 2 * noseHeight;
 							}

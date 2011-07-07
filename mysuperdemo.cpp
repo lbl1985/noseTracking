@@ -128,21 +128,21 @@ int main(int argc, char** argv)
 
 	/****************************** Particle Filter Global *****************************/
 
-	int num_particles = 100;
+	int num_particles = 20;
 	// state.h
 	extern int num_states;
 	// observation.h
-	CvSize featsize = cvSize(24,24);
+	CvSize featsize = cvSize(12,12);
 
 	bool arg_export = false;
 	char export_filename[2048];
 	const char* export_format = "%s_%04d.png";
 
-	float std_x = 3.0;
-	float std_y = 3.0;
-	float std_w = 2.0;
-	float std_h = 2.0;
-	float std_r = 1.0;
+	float std_x = 20.0;
+	float std_y = 20.0;
+	float std_w = 9.0;
+	float std_h = 9.0;
+	float std_r = 20.0;
 
 	// If particle filter, then initialize 
 	if (trackPattern == 'p')
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
 		// ---- Face Tracking Section ----
 		// If face detected. No detection required any further.
 		
-		if(faceDetectionCount < 10000)
+		if(faceDetectionCount < 25)
 		{
 			if (!faces.empty())
 				Detection = false;	
@@ -447,6 +447,11 @@ int main(int argc, char** argv)
 							// Draw most probable particle
 							//printf( "Most probable particle's state\n" );
 							int maxp_id = cvParticleGetMax( particle );
+							double maxp_value = cvParticleGetMaxValue(particle);
+							cv::putText(current_frame.rgbRef(),
+								cv::format("%f probability", maxp_value),
+								Point(100,10), 0, 0.5, Scalar(255,0,0,255));							
+							printf("max probability: %f \n", maxp_value);
 							CvParticleState maxs = cvParticleStateGet( particle, maxp_id );
 							cvParticleStateDisplay( maxs, frame, CV_RGB(255,0,0) );
 							///cvParticleStatePrint( maxs );
@@ -467,6 +472,8 @@ int main(int argc, char** argv)
 							faceTrackWindow.x = maxs.x; faceTrackWindow.y = maxs.y;
 							faceTrackWindow.width = maxs.width; faceTrackWindow.height = maxs.width; 
 							faceTrackWindow = checkRect(faceTrackWindow, cvGetSize(pSaveImg));
+							selection = faceTrackWindow;
+
 						}
 
 						if( !trackObject && selection.width > 0 && selection.height > 0 )

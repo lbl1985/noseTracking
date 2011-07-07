@@ -116,9 +116,13 @@ int main(int argc, char** argv)
 	// Tracking Method, c -- "Cam Shift", p -- "Particle Filter"
 	//char trackPattern = 'c';
 	char trackPattern = 'p';
+
+	// Tracking Images, r -- "Regular Images", d -- "depth Images"
+	//char trackImage = 'r';
+	char trackImage = 'd';
 	// particle fitler related varables
 	CvRect region;
-	
+	//IplImage *frame;
 	// Configure particle filter
 	CvParticle *particle;
 	//CvParticleState std;
@@ -128,7 +132,7 @@ int main(int argc, char** argv)
 
 	/****************************** Particle Filter Global *****************************/
 
-	int num_particles = 20;
+	int num_particles = 10;
 	// state.h
 	extern int num_states;
 	// observation.h
@@ -424,9 +428,26 @@ int main(int argc, char** argv)
 					}
 				case 'p':
 					{
-						// Particle Filter: Reading rgb images
-						image = current_frame.rgb();
-						IplImage frameArray = current_frame.rgb();
+						//switch (trackImage){
+						//	case 'r':
+						//		{
+						//			// Particle Filter: Reading rgb images
+						//			image = current_frame.rgb();
+						//			break;
+						//		}
+						//	case 'd':
+						//		{
+						//			image = depth_as_color;																		
+						//			break;
+						//		}
+						//}
+						if (trackImage == 'd')
+							image = depth_as_color;
+						else if (trackImage == 'r')
+							image = current_frame.rgb();
+
+						
+						IplImage frameArray = image;
 						IplImage *frame = &frameArray;
 						imshow("debug", frame);	
 						

@@ -118,7 +118,14 @@ int main(int argc, char** argv)
 	char trackPattern = 'p';
 	// particle fitler related varables
 	CvRect region;
+	
+	// Configure particle filter
+	CvParticle *particle;
+	//CvParticleState std;
+	// template
 	IplImage* reference;
+
+
 	/****************************** Particle Filter Global *****************************/
 
 	int num_particles = 100;
@@ -474,7 +481,8 @@ int main(int argc, char** argv)
 
 							// configure particle filter
 							bool logprob = true;
-							CvParticle *particle = cvCreateParticle( num_states, num_particles, logprob );
+							particle = cvCreateParticle( num_states, num_particles, logprob );
+							//CvParticle *particle = cvCreateParticle( num_states, num_particles, logprob );
 							CvParticleState std = cvParticleState (
 								std_x,
 								std_y,

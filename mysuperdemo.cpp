@@ -609,14 +609,7 @@ int main(int argc, char** argv)
 
 
 
-		// Initial nose Point as fixed reference point
-		// Because noise, pick the 5th point as reference point.
-		// Need to set this initial point after cooldown/reappear detection
-		if (m_History.size() == 5)
-		{			
-			initPoint.x = m_History.front().x;
-			initPoint.y = m_History.front().y;
-		}
+		
 
 
 		if (m_History.size() > m_nHistorySize)
@@ -627,11 +620,19 @@ int main(int argc, char** argv)
 		if (m_History.size() > 0)
 			m_History = trajGaussianSmooth(m_History, sigma1);
 
+		// Initial nose Point as fixed reference point
+		// Because noise, pick the 5th point as reference point.
+		// Need to set this initial point after cooldown/reappear detection
+		if (m_History.size() == 15)
+		{			
+			initPoint = meanPoint(m_History)
+		}
+
 		//if (m_History.size() == 1)
 		//	goldPoint = nosePoint;
 
 		// Setting Cursory Section
-		if (m_History.size() >= 2){
+		if (m_History.size() >= 15){
 			// New Point
 			Point newPoint;
 			newPoint.x = m_History.front().x;
@@ -639,8 +640,8 @@ int main(int argc, char** argv)
 			
 			// Old Point
 			Point oldPoint;
-			//oldPoint = initPoint;
-			oldPoint = meanPoint(m_History);
+			oldPoint = initPoint;
+			//oldPoint = meanPoint(m_History);
 			
 			
 			//Screen Coordinates Transfer Factor

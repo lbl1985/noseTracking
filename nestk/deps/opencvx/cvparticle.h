@@ -95,6 +95,7 @@ CVAPI(void) cvParticleSetNoise( CvParticle* p, CvRNG rng, const CvMat* std );
 CVAPI(void) cvParticleSetBound( CvParticle* p, const CvMat* bound );
 
 CVAPI(int)  cvParticleGetMax( const CvParticle* p );
+CVAPI(double) cvParticleGetMaxValue(const CvParticle* p);
 CVAPI(void) cvParticleGetMean( const CvParticle* p, CvMat* meanp );
 CVAPI(void) cvParticlePrint( const CvParticle* p, int p_id );
 
@@ -243,6 +244,20 @@ CVAPI(int) cvParticleGetMax( const CvParticle* p )
     CvPoint min_loc, max_loc;
     cvMinMaxLoc( p->weights, &minval, &maxval, &min_loc, &max_loc );
     return max_loc.x;
+}
+
+/**
+ * Get maxval of the most probable particle
+ *
+ * @param particle
+ * @ return double
+ */
+CVAPI(double) cvParticleGetMaxValue( const CvParticle* p)
+{
+	double minval, maxval;
+    CvPoint min_loc, max_loc;
+    cvMinMaxLoc( p->weights, &minval, &maxval, &min_loc, &max_loc );
+    return maxval;
 }
 
 /**

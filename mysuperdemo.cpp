@@ -62,7 +62,7 @@ Point originNose;
 Rect selectionNose;
 int vminNose = 10, vmaxNose = 256, sminNose = 92;
 // Nose movement maximum distance.
-double diffThreshold = 100;
+double diffThreshold = 50;
 
 // Function prototype for detecting and drawing an object from an image
 vector<Rect> detectAndDraw( Mat& img,
@@ -614,7 +614,9 @@ int main(int argc, char** argv)
 
 
 		// Initial nose Point as fixed reference point
-		if (m_History.size() == 1)
+		// Because noise, pick the 5th point as reference point.
+		// Need to set this initial point after cooldown/reappear detection
+		if (m_History.size() == 5)
 		{			
 			initPoint.x = m_History.front().x;
 			initPoint.y = m_History.front().y;

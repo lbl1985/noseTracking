@@ -306,7 +306,9 @@ int main(int argc, char** argv)
 		
 		if(faceDetectionCount < 10000)
 		{
-			Detection = false;	isTracking = true;	faceDetectionCount++;
+			if (!faces.empty())
+				Detection = false;	
+			isTracking = true;	faceDetectionCount++;
 		}
 		else
 		{
@@ -332,7 +334,7 @@ int main(int argc, char** argv)
 			
 		}
 
-		if (isTracking)
+		if (isTracking && selection.height >0 && selection.width >0)
 		{
 			
 			
@@ -415,23 +417,12 @@ int main(int argc, char** argv)
 					}
 				case 'p':
 					{
-						// Particle Filter
+						// Particle Filter: Reading rgb images
+						image = current_frame.rgb();
 						IplImage frameArray = current_frame.rgb();
 						IplImage *frame = &frameArray;
-						imshow("debug", frame);						
-						region = faces.front();
-
-						// configure particle filter
-						bool logprob = true;
-						CvParticle *particle = cvCreateParticle( num_states, num_particles, logprob );
-						CvParticleState std = cvParticleState (
-							std_x,
-							std_y,
-							std_w,
-							std_h,
-							std_r
-						);
-						cvParticleStateConfig( particle, cvGetSize(frame), std );
+						imshow("debug", frame);	
+						
 
 						if( trackObject < 0 )
 						{
@@ -473,6 +464,27 @@ int main(int argc, char** argv)
 
 						if( !trackObject && selection.width > 0 && selection.height > 0 )
 						{
+							// read the initial face region
+							if (!faces.empty())
+							{
+								vector<Rect>::const_iterator r = faces.begin();
+								region.x = r->x; region.y = r->y; 
+								region.width = r->width; region.height = r->height;	
+							}
+
+							// configure particle filter
+							bool logprob = true;
+							CvParticle *particle = cvCreateParticle( num_states, num_particles, logprob );
+							CvParticleState std = cvParticleState (
+								std_x,
+								std_y,
+								std_w,
+								std_h,
+								std_r
+							);
+							cvParticleStateConfig( particle, cvGetSize(frame), std );
+							
+							// initialize particle filter
 							CvParticleState s;
 							CvParticle *init_particle;
 							init_particle = cvCreateParticle( num_states, 1 );
@@ -548,18 +560,21 @@ int main(int argc, char** argv)
 				// push 
 				m_History.push_front(nosePoint);
 		}
-		else
+		else if(!faces.empty())
 			m_History.push_front(nosePoint);
 		
 		// Visualize nose by detection only v.s. movement judgement
 		// Showing Detection Nose
-		cv::putText(image,
-			cv::format("noseDet"),
-			nosePoint, 0, 0.5, Scalar(255,0,0,255));
-		cv::putText(image, 
-			cv::format("noseJdg"),
-			m_History.front(), 0, 0.5, Scalar(255, 255, 0, 0));
-		imshow("debug", image);
+		if (!faces.empty())
+		{
+			cv::putText(image,
+				cv::format("noseDet"),
+				nosePoint, 0, 0.5, Scalar(255,0,0,255));
+			cv::putText(image, 
+				cv::format("noseJdg"),
+				m_History.front(), 0, 0.5, Scalar(255, 255, 0, 0));
+			imshow("debug", image);
+		}
 
 
 
@@ -576,8 +591,8 @@ int main(int argc, char** argv)
 		
 		
 		
-
-		m_History = trajGaussianSmooth(m_History, sigma1);
+		if (m_History.size() > 0)
+			m_History = trajGaussianSmooth(m_History, sigma1);
 
 		//if (m_History.size() == 1)
 		//	goldPoint = nosePoint;

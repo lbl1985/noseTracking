@@ -428,19 +428,6 @@ int main(int argc, char** argv)
 					}
 				case 'p':
 					{
-						//switch (trackImage){
-						//	case 'r':
-						//		{
-						//			// Particle Filter: Reading rgb images
-						//			image = current_frame.rgb();
-						//			break;
-						//		}
-						//	case 'd':
-						//		{
-						//			image = depth_as_color;																		
-						//			break;
-						//		}
-						//}
 						if (trackImage == 'd')
 							image = depth_as_color;
 						else if (trackImage == 'r')
@@ -507,11 +494,12 @@ int main(int argc, char** argv)
 								//region.width = r->width; region.height = r->height;	
 								// tracking nose
 								nosePoint = noseRegion(*r, &current_frame, isPoint);
-								double noseWidth = 50; // only half of the desired width
-								region.x = nosePoint.x - noseWidth;
-								region.y = nosePoint.y - noseWidth;
+								double noseWidth = 50; 
+								double noseHeight = 30;// only half of the desired width
+								region.x = floor(nosePoint.x - noseWidth/2);
+								region.y = floor(nosePoint.y - noseHeight/2);
 								region.width = 2 * noseWidth;
-								region.height = 2 * noseWidth;
+								region.height = 2 * noseHeight;
 							}
 
 							// configure particle filter

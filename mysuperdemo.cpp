@@ -490,16 +490,16 @@ int main(int argc, char** argv)
 							{
 								vector<Rect>::const_iterator r = faces.begin();
 								// tracking face
-								//region.x = r->x; region.y = r->y; 
-								//region.width = r->width; region.height = r->height;	
+								region.x = r->x; region.y = r->y; 
+								region.width = r->width; region.height = r->height;	
 								// tracking nose
-								nosePoint = noseRegion(*r, &current_frame, isPoint);
-								double noseWidth = 50; 
-								double noseHeight = 50;// only half of the desired width
-								region.x = floor(nosePoint.x - noseWidth);
-								region.y = floor(nosePoint.y - noseHeight);
-								region.width = 2 * noseWidth;
-								region.height = 2 * noseHeight;
+								//nosePoint = noseRegion(*r, &current_frame, isPoint);
+								//double noseWidth = 50; 
+								//double noseHeight = 50;// only half of the desired width
+								//region.x = floor(nosePoint.x - noseWidth);
+								//region.y = floor(nosePoint.y - noseHeight);
+								//region.width = 2 * noseWidth;
+								//region.height = 2 * noseHeight;
 							}
 
 							// configure particle filter
@@ -965,8 +965,8 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	//mFace[0]  = mFace[0] - mFace[0] * var;
 	inRange(depthROI, Scalar::all(0.001), mFace, maskROI);
 	mFace = cv::mean(rDepthROI, rMaskROI);
-	inRange(depthROI, Scalar::all(0.001), mFace, maskROI);
-	mFace = cv::mean(rDepthROI, rMaskROI);
+	//inRange(depthROI, Scalar::all(0.001), mFace, maskROI);
+	//mFace = cv::mean(rDepthROI, rMaskROI);
 	
 
 

@@ -637,16 +637,16 @@ int main(int argc, char** argv)
 			Point newPoint;
 			newPoint.x = m_History.front().x;
 			newPoint.y = m_History.front().y;
-
-			double initDiff = pointDistance(newPoint, initPoint);
+			
 			// if the current point and initPoint distance less than the threshold
-			// using the point before. To stablize the location.
-			if (initDiff < 8)
+			// using the point before. To stablize the location.			
+			double initDiff = pointDistance(newPoint, initPoint);
+			printf("initDiff = %f", initDiff);
+			if (initDiff < 3)
 			{
 				m_History.pop_front();
-				newPoint.x = m_History.front().x;
-				newPoint.y = m_History.front().y;
-				m_History.push_front(newPoint);
+				m_History.push_front(initPoint);
+				newPoint = initPoint;
 			}
 			
 			// Old Point

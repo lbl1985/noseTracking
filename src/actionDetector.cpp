@@ -34,7 +34,7 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 	// isCoolDown Default is false.
 	bool isCoolDown = false;
 	std::list<Point>::iterator iter_before;
-	for (std::list<Point>::iterator iter_m_History = m_History.begin(); count <= coolDownConNum; iter_m_History++)
+	for (std::list<Point>::iterator iter_m_History = m_History.begin(); count < coolDownConNum; iter_m_History++)
 	{
 		iter_before = iter_m_History;	iter_before++;
 		current = assignPoint(iter_m_History);
@@ -47,7 +47,7 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 		count++;
 	}
 	int sumList = std::accumulate(isMove.begin(), isMove.end(), 0);
-	if (sumList == 5){	
+	if (sumList == coolDownConNum){	
 		isCoolDown = true;
 		printf("Cool Down Detected");}
 }

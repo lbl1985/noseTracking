@@ -577,9 +577,9 @@ int main(int argc, char** argv)
 		if (m_History.size() > 0 )
 		{		
 			
-			Point tempPoint;
-			tempPoint.x = m_History.front().x;
-			tempPoint.y = m_History.front().y;
+			Point tempPoint = m_History.front();
+			//tempPoint.x = m_History.front().x;
+			//tempPoint.y = m_History.front().y;
 
 			double diff = pointDistance(tempPoint, nosePoint);
 			printf("diff is: %f \n", diff);

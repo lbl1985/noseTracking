@@ -578,8 +578,6 @@ int main(int argc, char** argv)
 		{		
 			
 			Point tempPoint = m_History.front();
-			//tempPoint.x = m_History.front().x;
-			//tempPoint.y = m_History.front().y;
 
 			double diff = pointDistance(tempPoint, nosePoint);
 			printf("diff is: %f \n", diff);
@@ -634,9 +632,7 @@ int main(int argc, char** argv)
 		// Setting Cursory Section
 		if (m_History.size() >= 15){
 			// New Point
-			Point newPoint;
-			newPoint.x = m_History.front().x;
-			newPoint.y = m_History.front().y;
+			Point newPoint = m_History.front();
 			
 			// if the current point and initPoint distance less than the threshold
 			// using the point before. To stablize the location.			

@@ -10,8 +10,10 @@ double pointDistance(Point tempPoint, Point nosePoint)
 	return (diff);
 }
 
-void assignPoint(Point& target, list<Point>::iterator iter)
+Point assignPoint(list<Point>::iterator iter)
 {
+	Point target;
 	target.x = iter->x;
 	target.y = iter->y;
+	return(target);
 }

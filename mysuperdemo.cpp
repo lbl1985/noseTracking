@@ -17,6 +17,9 @@
 #include "GuiController.h"
 #include "ObjectDetector.h"
 
+//#include "support.h"
+#include <src/actionDetector.h>
+
 #include "BlobResult.h"
 #include "state.h"
 #include "observetemplate.h"

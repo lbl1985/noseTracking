@@ -57,9 +57,9 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 actionDetector::actionDetector(void)
 {
 	// Movement less than the coolDownThreshold to be one cooldown point
-	coolDownThreshold = 10;
+	coolDownThreshold = 3;
 	// How many Consecutive Frames moving less than threshold to decide as cooldown
-	coolDownConNum = 5;
+	coolDownConNum = 12;
 }
 
 actionDetector::~actionDetector(void)

@@ -581,10 +581,6 @@ int main(int argc, char** argv)
 			tempPoint.x = m_History.front().x;
 			tempPoint.y = m_History.front().y;
 
-			//double diff, xdiff, ydiff;
-			//xdiff = tempPoint.x - nosePoint.x;
-			//ydiff = tempPoint.y - nosePoint.y;
-			//diff = sqrt(xdiff * xdiff + ydiff * ydiff);
 			double diff = pointDistance(tempPoint, nosePoint);
 			printf("diff is: %f \n", diff);
 			if (diff > diffThreshold)
@@ -641,6 +637,17 @@ int main(int argc, char** argv)
 			Point newPoint;
 			newPoint.x = m_History.front().x;
 			newPoint.y = m_History.front().y;
+
+			double initDiff = pointDistance(newPoint, initPoint);
+			// if the current point and initPoint distance less than the threshold
+			// using the point before. To stablize the location.
+			if (initDiff < 8)
+			{
+				m_History.pop_front();
+				newPoint.x = m_History.front().x;
+				newPoint.y = m_History.front().y;
+				m_History.push_front(newPoint);
+			}
 			
 			// Old Point
 			Point oldPoint;

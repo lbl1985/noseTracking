@@ -581,10 +581,11 @@ int main(int argc, char** argv)
 			tempPoint.x = m_History.front().x;
 			tempPoint.y = m_History.front().y;
 
-			double diff, xdiff, ydiff;
-			xdiff = tempPoint.x - nosePoint.x;
-			ydiff = tempPoint.y - nosePoint.y;
-			diff = sqrt(xdiff * xdiff + ydiff * ydiff);
+			//double diff, xdiff, ydiff;
+			//xdiff = tempPoint.x - nosePoint.x;
+			//ydiff = tempPoint.y - nosePoint.y;
+			//diff = sqrt(xdiff * xdiff + ydiff * ydiff);
+			double diff = pointDistance(tempPoint, nosePoint);
 			printf("diff is: %f \n", diff);
 			if (diff > diffThreshold)
 				// if the movement distance is larget than the threshold

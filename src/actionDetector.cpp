@@ -1,4 +1,5 @@
 #include "actionDetector.h"
+#include <numeric>
 
 void actionDetector::set_coolDownThreshold(double a)
 {
@@ -20,19 +21,35 @@ int actionDetector::view_coolDownConNum()
 
 void actionDetector::coolDownDetect(std::list<Point> m_History)
 {
-	// coolDownDetect only operate when m_History.size() >= 15
-	//if (m_History.size() < 15)
-		//printf("coolDownDetect should not be operated when m_History.size() < 15);
+	// coolDownDetect only operate when m_History.size() >= coolDownConNum + 1 (need coolDownConNum distance less than the coolDownThreshold
+	//if (m_History.size() < coolDownConNum + 1)
+	//	printf("coolDownDetect should not be operated when m_History.size() < 15);
 	int m_HistorySize = m_History.size();
 	std::list<int> isMove;
 	std::list<int>::iterator iter_isMove = isMove.begin();
 	Point current, before;
-	for (std::list<Point>::iterator iter_m_History = m_History.begin(); iter_m_History != m_History.end(); iter_m_History++)
+	double distance;
+	// count to control how many consecutive points we really need
+	int count = 0;
+	// isCoolDown Default is false.
+	bool isCoolDown = false;
+	std::list<Point>::iterator iter_before;
+	for (std::list<Point>::iterator iter_m_History = m_History.begin(); count <= coolDownConNum; iter_m_History++)
 	{
-		//iter_m_History->
-
+		iter_before = iter_m_History;	iter_before++;
+		current = assignPoint(iter_m_History);
+		before  = assignPoint(iter_before);
+		distance = pointDistance(current, before);
+		if (distance < coolDownThreshold)
+			isMove.push_front(1);
+		else
+			isMove.push_front(0);
+		count++;
 	}
-
+	int sumList = std::accumulate(isMove.begin(), isMove.end(), 0);
+	if (sumList == 5){	
+		isCoolDown = true;
+		printf("Cool Down Detected");}
 }
 
 

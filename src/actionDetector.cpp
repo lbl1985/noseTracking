@@ -24,10 +24,13 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 	//if (m_History.size() < 15)
 		//printf("coolDownDetect should not be operated when m_History.size() < 15);
 	int m_HistorySize = m_History.size();
-	std::list<bool> isMove;
-	std::list<bool>::iterator iter_isMove = isMove.begin();
+	std::list<int> isMove;
+	std::list<int>::iterator iter_isMove = isMove.begin();
+	Point current, before;
 	for (std::list<Point>::iterator iter_m_History = m_History.begin(); iter_m_History != m_History.end(); iter_m_History++)
 	{
+		//iter_m_History->
+
 	}
 
 }
@@ -37,9 +40,9 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 actionDetector::actionDetector(void)
 {
 	// Movement less than the coolDownThreshold to be one cooldown point
-	coolDownThreshold = 15;
+	coolDownThreshold = 10;
 	// How many Consecutive Frames moving less than threshold to decide as cooldown
-	coolDownConNum = 10;
+	coolDownConNum = 5;
 }
 
 actionDetector::~actionDetector(void)

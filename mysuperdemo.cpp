@@ -161,6 +161,8 @@ int main(int argc, char** argv)
 	Point nosePoint;
 	Point initPoint;  // First detected nose location as fixing original reference point
 	bool isPoint = true;
+	// Action Detector subject.
+	actionDetector firstActor;
 	
 	Rect trackWindowNose;
 	RotatedRect trackBoxNose;

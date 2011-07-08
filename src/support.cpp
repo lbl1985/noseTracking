@@ -9,3 +9,9 @@ double pointDistance(Point tempPoint, Point nosePoint)
 	//printf("diff is: %f \n", diff);
 	return (diff);
 }
+
+void assignPoint(Point& target, list<Point>::iterator iter)
+{
+	target.x = iter->x;
+	target.y = iter->y;
+}

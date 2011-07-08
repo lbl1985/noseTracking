@@ -6,6 +6,6 @@ double pointDistance(Point tempPoint, Point nosePoint)
 	xdiff = tempPoint.x - nosePoint.x;
 	ydiff = tempPoint.y - nosePoint.y;
 	diff = sqrt(xdiff * xdiff + ydiff * ydiff);	
-	printf("diff is: %f \n", diff);
+	//printf("diff is: %f \n", diff);
 	return (diff);
 }

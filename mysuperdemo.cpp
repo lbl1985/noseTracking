@@ -640,7 +640,7 @@ int main(int argc, char** argv)
 			// using the point before. To stablize the location.			
 			double initDiff = pointDistance(newPoint, initPoint);
 			printf("initDiff = %f", initDiff);
-			if (initDiff < 3)
+			if (initDiff < 7)
 			{
 				m_History.pop_front();
 				m_History.push_front(initPoint);

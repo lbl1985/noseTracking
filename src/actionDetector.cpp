@@ -59,7 +59,7 @@ actionDetector::actionDetector(void)
 	// Movement less than the coolDownThreshold to be one cooldown point
 	coolDownThreshold = 3;
 	// How many Consecutive Frames moving less than threshold to decide as cooldown
-	coolDownConNum = 12;
+	coolDownConNum = 15;
 }
 
 actionDetector::~actionDetector(void)

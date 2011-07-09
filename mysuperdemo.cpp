@@ -647,7 +647,7 @@ int main(int argc, char** argv)
 				newPoint = initPoint;
 			}
 			
-			if(m_History.size() == 20)
+			if(m_History.size() > 15)
 			{
 				firstActor.coolDownDetect(m_History);
 			}

@@ -54,7 +54,7 @@ void actionDetector::coolDownDetect(std::list<Point> m_History)
 
 
 
-void coolDownDetect(std::list<Point>, Point initPoint)
+void actionDetector::coolDownDetect(std::list<Point> m_History, Point initPoint)
 {
 	// coolDownDetect only operate when m_History.size() >= coolDownConNum + 1 (need coolDownConNum distance less than the coolDownThreshold
 	//if (m_History.size() < coolDownConNum + 1)

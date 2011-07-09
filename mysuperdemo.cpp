@@ -649,7 +649,7 @@ int main(int argc, char** argv)
 			
 			/*if(m_History.size() > 15)
 			{*/
-				firstActor.coolDownDetect(m_History, init);
+				firstActor.coolDownDetect(m_History, initPoint);
 			//}
 			// Old Point
 			Point oldPoint;

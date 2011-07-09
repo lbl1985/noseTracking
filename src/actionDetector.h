@@ -7,8 +7,12 @@ using namespace cv;
 class actionDetector
 {
 public:
+	// Comparing between the current and before Point
 	void coolDownDetect(std::list<Point>);
 	Point coolDownDetect(std::list<Point>, bool isPoint);
+	// Comparing between the current and the initPoint.
+	void coolDownDetect(std::list<Point>, Point initPoint);
+
 	void set_coolDownThreshold(double a);
 	double view_coolDownThreshold();
 	void set_coolDownConNum(int a);

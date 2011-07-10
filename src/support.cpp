@@ -53,11 +53,13 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	// For debug of cvblobslib
 	// Display the color image	
 
-	imshow("faceRIO", maskROI);
+	//imshow("faceRIO", maskROI);
+	imshow("faceRIO", outFrameROI);
 	bool iswrite;
 	const int nchannel = 1;
 	vector<Rect> faces;
-	iswrite = imwrite("faceROI.png", maskROI);
+	//iswrite = imwrite("faceROI.png", maskROI);
+	iswrite = imwrite("faceROI.png", outFrameROI);
 	//iswrite = cvSaveImage("faceROI.jpeg", pOutFrame, &nchannel);
 
 	// ---- blob segmentation on maskROI by using cvblobslib ----
@@ -100,10 +102,10 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	cv::ellipse(mat, blobEllipseContour, cv::Scalar(0,255, 0), 3, CV_AA);
 	cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
 	//cv::ellipse(mat, blobEllipseContour);
-	
+	cv::putText(mat,
+			cv::format("%f degree", blobEllipseContour.angle),
+			Point(10,20), 0, 0.5, Scalar(255,0,0,255));
+
 	cv::imshow("faceRIO", mat);
-
-	
-
 }
 

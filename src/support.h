@@ -8,4 +8,5 @@ using namespace ntk;
 
 double pointDistance(Point a, Point b);
 Point assignPoint(list<Point>::iterator iter);
-void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
+// Face depth threshold Segmentation Function
+float thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);

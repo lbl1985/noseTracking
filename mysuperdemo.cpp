@@ -85,7 +85,7 @@ Point noseRegion(Rect TrackingRegion, ntk::RGBDImage* current_frame, bool isPoin
 Rect checkRect(Rect r, CvSize siz);
 
 // Simple threshold Segmentation Function
-void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
+//void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst);
 
 // Calculate the mean
 Point meanPoint(std::list<Point> history);
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
 			}
 
 			
-			thresholdSegmentation(selection, &current_frame, dst);
+			firstActor.setHeadOrientation(thresholdSegmentation(faceTrackWindow, &current_frame, dst));
 			
 		}
 
@@ -428,7 +428,7 @@ int main(int argc, char** argv)
 						}
 						// Threshold Segmentation 
 						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
-							thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+							firstActor.setHeadOrientation(thresholdSegmentation(faceTrackWindow, &current_frame, dst));
 						break;
 					}
 				case 'p':
@@ -543,7 +543,7 @@ int main(int argc, char** argv)
 						
 						// Threshold Segmentation 
 						if (faceTrackWindow.width >0 && faceTrackWindow.height >0)
-							thresholdSegmentation(faceTrackWindow, &current_frame, dst);
+							firstActor.setHeadOrientation(thresholdSegmentation(faceTrackWindow, &current_frame, dst));							
 						break;
 					}
 			}

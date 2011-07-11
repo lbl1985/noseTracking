@@ -17,7 +17,7 @@ Point assignPoint(list<Point>::iterator iter)
 	target.y = iter->y;
 	return(target);
 }
-void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
+float thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	Mat depth = current_frame->depth();
 	Rect& rr = r;
 	Mat depthROI = depth(rr), maskROI;
@@ -112,5 +112,6 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 			Point(10,20), 0, 0.5, Scalar(255,0,0,255));
 
 	cv::imshow("faceRIO", mat);
+	return(headOritation);
 }
 

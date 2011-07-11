@@ -13,10 +13,12 @@ public:
 	// Comparing between the current and the initPoint.
 	void coolDownDetect(std::list<Point>, Point initPoint);
 
-	void set_coolDownThreshold(double a);
-	double view_coolDownThreshold();
-	void set_coolDownConNum(int a);
-	int view_coolDownConNum();
+	void setCoolDownThreshold(double a);
+	double getCoolDownThreshold();
+	void setCoolDownConNum(int a);
+	int getCoolDownConNum();
+	void setHeadOrientation(float sourceHeadOrientation);
+	float getHeadOrientation();
 
 	actionDetector(void);
 	~actionDetector(void);
@@ -25,5 +27,7 @@ private:
 	double coolDownThreshold;
 	// How many Consecutive Frames moving less than threshold to decide as cooldown
 	int coolDownConNum;
+	// Head Orientation from thresholdSegmentation
+	float headOrientation;
 
 };

@@ -1,23 +1,28 @@
 #include "actionDetector.h"
 #include <numeric>
 
-void actionDetector::set_coolDownThreshold(double a)
+void actionDetector::setCoolDownThreshold(double a)
 {
 	coolDownThreshold = a;
 }
-double actionDetector::view_coolDownThreshold()
+double actionDetector::getCoolDownThreshold()
 {
 	return (coolDownThreshold);
 }
 
-void actionDetector::set_coolDownConNum(int a)
+void actionDetector::setCoolDownConNum(int a)
 {
 	coolDownConNum = a;
 }
-int actionDetector::view_coolDownConNum()
+int actionDetector::getCoolDownConNum()
 {
 	return(coolDownConNum);
 }
+
+void actionDetector::setHeadOrientation(float sourceHeadOrientation){
+	headOrientation = sourceHeadOrientation; }
+float actionDetector::getHeadOrientation(){
+	return(headOrientation);}
 
 void actionDetector::coolDownDetect(std::list<Point> m_History)
 {
@@ -91,6 +96,8 @@ actionDetector::actionDetector(void)
 	coolDownThreshold = 15;
 	// How many Consecutive Frames moving less than threshold to decide as cooldown
 	coolDownConNum = 10;
+
+	headOrientation = 0;
 }
 
 actionDetector::~actionDetector(void)

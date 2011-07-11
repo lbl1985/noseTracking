@@ -23,6 +23,7 @@
 #include "BlobResult.h"
 #include "state.h"
 #include "observetemplate.h"
+#include "windows.h"
 //#include "blobs.h"
 
 #include <QApplication>
@@ -647,7 +648,8 @@ int main(int argc, char** argv)
 				newPoint = initPoint;
 			}
 			
-			firstActor.coolDownDetect(m_History, initPoint);
+			
+				
 			
 			// Old Point
 			Point oldPoint;
@@ -678,6 +680,15 @@ int main(int argc, char** argv)
 			::GetCursorPos(&currentPoint);
 			resultPoint.x = currentPoint.x + xOffset * ratio;
 			resultPoint.y = currentPoint.y + yOffset * ratio;
+			
+			firstActor.coolDownDetect(m_History, initPoint);
+			double headSwipeFlag = firstActor.swipeDetect();
+			if (headSwipeFlag > 0)
+				mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+			else if (headSwipeFlag < 0)
+				mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+
+
 
 			// Check inbound
 			if(resultPoint.x <= 0)

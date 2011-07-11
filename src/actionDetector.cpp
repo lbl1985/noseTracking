@@ -88,7 +88,7 @@ void actionDetector::coolDownDetect(std::list<Point> m_History, Point initPoint)
 
 double actionDetector::swipeDetect(){
 	double headSwipeFlag;
-	if (abs(headOrientation) > 15){
+	if (abs(headOrientation) > 20){
 		if (headOrientation > 0)
 			headSwipeFlag = 1;
 		else

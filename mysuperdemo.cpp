@@ -346,7 +346,7 @@ int main(int argc, char** argv)
 			}
 
 			
-			firstActor.setHeadOrientation(thresholdSegmentation(faceTrackWindow, &current_frame, dst));
+			firstActor.setHeadOrientation(thresholdSegmentation(selection, &current_frame, dst));
 			
 		}
 
@@ -647,10 +647,8 @@ int main(int argc, char** argv)
 				newPoint = initPoint;
 			}
 			
-			/*if(m_History.size() > 15)
-			{*/
-				firstActor.coolDownDetect(m_History, initPoint);
-			//}
+			firstActor.coolDownDetect(m_History, initPoint);
+			
 			// Old Point
 			Point oldPoint;
 			oldPoint = initPoint;

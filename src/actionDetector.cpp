@@ -1,28 +1,23 @@
 #include "actionDetector.h"
 #include <numeric>
 
-void actionDetector::setCoolDownThreshold(double a)
-{
-	coolDownThreshold = a;
-}
-double actionDetector::getCoolDownThreshold()
-{
-	return (coolDownThreshold);
-}
+void actionDetector::setCoolDownThreshold(double sourceCoolDownThreshold){
+	this->coolDownThreshold = sourceCoolDownThreshold;}
 
-void actionDetector::setCoolDownConNum(int a)
-{
-	coolDownConNum = a;
-}
-int actionDetector::getCoolDownConNum()
-{
-	return(coolDownConNum);
-}
+double actionDetector::getCoolDownThreshold(){
+	return (this->coolDownThreshold);}
+
+void actionDetector::setCoolDownConNum(int sourceCoolDownConNum){
+	this->coolDownConNum = sourceCoolDownConNum;}
+
+int actionDetector::getCoolDownConNum(){
+	return(this->coolDownConNum);}
 
 void actionDetector::setHeadOrientation(float sourceHeadOrientation){
-	headOrientation = sourceHeadOrientation; }
+	this->headOrientation = sourceHeadOrientation;	}
+
 float actionDetector::getHeadOrientation(){
-	return(headOrientation);}
+	return(this->headOrientation);}
 
 void actionDetector::coolDownDetect(std::list<Point> m_History)
 {

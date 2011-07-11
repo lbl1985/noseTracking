@@ -102,8 +102,13 @@ void thresholdSegmentation(Rect r, ntk::RGBDImage* current_frame, Mat& dst){
 	cv::ellipse(mat, blobEllipseContour, cv::Scalar(0,255, 0), 3, CV_AA);
 	cv::rectangle(mat, blobRectContour, cv::Scalar(255, 0, 0), 3, CV_AA);
 	//cv::ellipse(mat, blobEllipseContour);
+	float headOritation = blobEllipseContour.angle;
+	if (headOritation <= 180)
+		headOritation = headOritation - 90;
+	else
+		headOritation = headOritation - 270;
 	cv::putText(mat,
-			cv::format("%f degree", blobEllipseContour.angle),
+			cv::format("%f degree", headOritation),
 			Point(10,20), 0, 0.5, Scalar(255,0,0,255));
 
 	cv::imshow("faceRIO", mat);

@@ -85,6 +85,20 @@ void actionDetector::coolDownDetect(std::list<Point> m_History, Point initPoint)
 		printf("Cool Down Detected");}
 
 }
+
+double actionDetector::swipeDetect(){
+	double headSwipeFlag;
+	if (abs(headOrientation) > 15){
+		if (headOrientation > 0)
+			headSwipeFlag = 1;
+		else
+			headSwipeFlag = -1;
+	}
+	else
+		headSwipeFlag = 0;
+	return (headSwipeFlag);
+}
+
 actionDetector::actionDetector(void)
 {
 	// Movement less than the coolDownThreshold to be one cooldown point

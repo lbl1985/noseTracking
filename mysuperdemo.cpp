@@ -817,7 +817,7 @@ vector<Rect> detectAndDraw( Mat& img,
 		}
 
 	}  
-	//cv::imshow( "result", img );   	
+	cv::imshow( "result", img );   	
 	return(faces);
 }
 
